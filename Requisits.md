@@ -8,15 +8,15 @@ El backend serà el cor del sistema, encarregat de gestionar dades, usuaris, i l
 
 ## Allotjament
 
-Base de dades
+Base de dades: MYSQL
 
-Sistema operatiu del servidor
+Sistema operatiu del servidor: Linux
 
 APIs i serveis web
 
-### Llenguatges de programació
+### Llenguatges de programació: Java, SQL
 
-### Seguretat
+### Seguretat: 
 
 ### Autenticació i autorització
 
@@ -30,7 +30,7 @@ Còpies de seguretat automàtiques
 
 Web, Mòbil, Esciptori.
 
-Llenguatge de programació:
+Llenguatge de programació: Flutter
 
 Compatibilitat dispositius
 
@@ -38,9 +38,9 @@ Compatibilitat dispositius
 
 ### Gestió d'usuari i autenticació
 
-Rols d’usuari
+Rols d’usuari: 
 
-Base de dades
+Base de dades: MYSQL
 
 Seguretat
 
@@ -55,15 +55,15 @@ Nivells A, AA y AAA d’accessibilitat
 
 ## Requisits d'Infraestructura
 
-Xarxa
+Xarxa: HTTPS
 
-Espai d’emmagatzematge al núvol
+Espai d’emmagatzematge al núvol: SSL
 
-APIs de tercers
+APIs de tercers: No
 
 ## Requisits del Procés de Desenvolupament
 
-IDE’s
+IDE’s: Visual code, Apache Net Beans
 
 Control de Versions:
 
