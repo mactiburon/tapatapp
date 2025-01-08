@@ -12,24 +12,24 @@ L'objectiu de TapatApp és proporcionar a totes les famílies afectades per cata
 
 ## Objectius del Projecte
 
-Controlar el temps que el nen porta el pegat ocular.
+-Controlar el temps que el nen porta el pegat ocular.
 
-Desenvolupar una aplicació mòbil per a Android.
+-Desenvolupar una aplicació mòbil per a Android.
 
-Diferenciar entre el temps relatiu del pegat per a infants menors de 6 mesos i el temps absolut per a nens més grans de 6 mesos.
+-Diferenciar entre el temps relatiu del pegat per a infants menors de 6 mesos i el temps absolut per a nens més grans de 6 mesos.
 
-Crear una aplicació multiusuari que permeti a diversos cuidadors gestionar el control del tractament.
+-Crear una aplicació multiusuari que permeti a diversos cuidadors gestionar el control del tractament.
 
-Restar el temps que el nen passa adormit.
+-Restar el temps que el nen passa adormit.
 
-Implementar un sistema intel·ligent (intel·ligència artificial) amb notificacions per preveure quan el pegat està a punt de completar el seu temps.
+-Implementar un sistema intel·ligent (intel·ligència artificial) amb notificacions per preveure quan el pegat està a punt de completar el seu temps.
 
-Requeriments Funcionals del Projecte.
+-Requeriments Funcionals del Projecte.
 
-Servidor per allotjar la part de backend.
+-Servidor per allotjar la part de backend.
 
-Desenvolupar el backend de l'aplicació amb serveis web.
+-Desenvolupar el backend de l'aplicació amb serveis web.
 
-Desenvolupar el frontend de l'aplicació mòbil.
+-Desenvolupar el frontend de l'aplicació mòbil.
 
 Possibilitat de crear una web quan l'aplicació estigui en producció.
