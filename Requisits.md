@@ -38,7 +38,7 @@ Compatibilitat dispositius: Si
 
 ### Gestió d'usuari i autenticació
 
-Rols d’usuari: 
+Rols d’usuari: Admin, cuidador, Tutor, Doctors
 
 Base de dades: MYSQL
 
