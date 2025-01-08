@@ -51,7 +51,7 @@ Dades que es guarden en local, són sensibles? Si
 Seguretat: Si
 
 ### Gestió d’accessibilitat
-Nivells A, AA y AAA d’accessibilitat
+Nivells A, AA y AAA d’accessibilitat: AA
 
 ## Requisits d'Infraestructura
 
