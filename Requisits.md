@@ -12,17 +12,17 @@ Base de dades: MYSQL
 
 Sistema operatiu del servidor: Linux
 
-APIs i serveis web
+APIs i serveis web: Si
 
-### Llenguatges de programació: Java, SQL
+### Llenguatges de programació: SQL
 
 ### Seguretat: 
 
 ### Autenticació i autorització
 
-Xifratge de dades
+Xifratge de dades: Hashcode
 
-Còpies de seguretat automàtiques
+Còpies de seguretat automàtiques: Si
 
 ## Frontend
 
@@ -32,7 +32,7 @@ Web, Mòbil, Esciptori.
 
 Llenguatge de programació: Flutter
 
-Compatibilitat dispositius
+Compatibilitat dispositius: Si
 
 ## Requisits Generals
 
@@ -42,13 +42,13 @@ Rols d’usuari:
 
 Base de dades: MYSQL
 
-Seguretat
+Seguretat: Si
 
 ### Emmagatzematge local i sincronització
 
-Dades que es guarden en local, són sensibles?
+Dades que es guarden en local, són sensibles? Si
 
-Seguretat
+Seguretat: Si
 
 ### Gestió d’accessibilitat
 Nivells A, AA y AAA d’accessibilitat
@@ -65,7 +65,7 @@ APIs de tercers: No
 
 IDE’s: Visual code, Apache Net Beans
 
-Control de Versions:
+Control de Versions: Github
 
 Mètode de desenvolupament: Seguir una metodologia àgil com Scrum per iterar i validar funcionalitats amb usuaris reals.
 
