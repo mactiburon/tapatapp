@@ -3,4 +3,4 @@ flowchart TD
     B -->|Petición HTTP GET username| C[<b>Servidor</b> <br> Webservice]
     C -->|Resposta HTTP amb JSON<br>user if exist| B
     C -->|Consulta DaoUser| D[Server DAO User<br> getUserByUsername]
-    D -->|Respond Object User if exits| D[<b>Servidor</b> <br> Webservice]
+    D -->|Respond Object User if exits| C
