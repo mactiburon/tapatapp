@@ -4,3 +4,4 @@ flowchart TD
     C -->|Resposta HTTP amb JSON<br>user if exist| B
     C -->|Consulta DaoUser| D[Server DAO User<br> getUserByUsername]
     D -->|Respond Object User if exits| C
+    C -->|Dades Procesades| E[Client View show info if exits]
