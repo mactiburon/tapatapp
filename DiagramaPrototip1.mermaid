@@ -1,4 +1,4 @@
 flowchart TD
     A[<b>Client View</b> <br> Input username] -->|Envia dades username| B[Client DAO User<br> getUserByUsername]
     B -->|Petición HTTP GET username| C[<b>Servidor</b> <br> Webservice]
-    D -->|Resposta HTTP amb JSON user if exist| B[<b>Servidor</b> <br> Webservice
+    D -->|Resposta HTTP amb JSON user if exist| B[Client DAO User<br> getUserByUsername]
