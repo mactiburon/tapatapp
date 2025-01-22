@@ -30,10 +30,35 @@ Model E/R
 
 Què necessitem per cada End-point
 
-Descripció:
+Descripció: 
+
 HOST: Domain port
-End-point (URL):
-Method:
-Tipus de petició (headers)
-Parametres que necessita la petició: (identifica els paràmetres i posa exemples en el cas de peticions GET)
+
+End-point (URL): https://api.tapatapp.com/users/get/recurs
+
+Method: GET
+
+Tipus de petició (headers): 
+
+Content-Type: application/json.
+
+Authorization: Bearer <token>.
+
+Parametres que necessita la petició:
+
+paràmetre1: id (exemple: 123)
+
+paràmetre2: filter (exemple: active=true)
+
+paràmetre3: sort (exemple: name:asc)
+
 Resposta:
+
+200 OK: si la petició es processa correctament.
+404 Not Found: si no es troba el recurs.
+
+{
+  "id": 123,
+  "nom": "Exemple",
+  "actiu": true
+}
