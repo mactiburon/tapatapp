@@ -1,9 +1,17 @@
 # tapatapp
 Proyecto de entornos donde dasarollaremos el aplicativo tapatapp
 
+## Descripció
+
 [Descripció](Descripció.md)
 
+## Requisits
+
 [Requisits](Requisits.md)
+
+Model E/R
+
+![image](https://github.com/user-attachments/assets/c1178d92-1b17-4b45-9505-0a5871406751)
 
 ## Prototip 1
 
@@ -13,6 +21,7 @@ Proyecto de entornos donde dasarollaremos el aplicativo tapatapp
 ## HTTP Request / Response
 
 # Definició dels EndPoints del WebService
+
 Definició dels EndPoints del Servei Web:
 
 ## Què necessitem per cada End-point
