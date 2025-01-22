@@ -20,11 +20,15 @@ Model E/R
 
 ## HTTP Request / Response
 
+[HTTP Request](HTTPRequest.md)
+
+[HTTP Response](HTTPResponse.md)
+
 # Definició dels EndPoints del WebService
 
-Definició dels EndPoints del Servei Web:
+## Definició dels EndPoints del Servei Web:
 
-## Què necessitem per cada End-point
+Què necessitem per cada End-point
 
 Descripció:
 HOST: Domain port
