@@ -46,11 +46,10 @@ Authorization: Bearer <token>.
 
 Parametres que necessita la petició:
 
-paràmetre1: id (exemple: 123)
-
-paràmetre2: filter (exemple: active=true)
-
-paràmetre3: sort (exemple: name:asc)
+-id = id
+-username = username
+-password = password
+-email = email
 
 Resposta:
 
