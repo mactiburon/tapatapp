@@ -1,4 +1,4 @@
-# tapatapp
+# Tapatapp
 Proyecto de entornos donde dasarollaremos el aplicativo tapatapp
 
 ## Descripció
@@ -20,9 +20,9 @@ Model E/R
 
 ## HTTP Request / Response
 
-[HTTP Request](HTTPRequest.md)
+[HTTP Request](HttpRequest.md)
 
-[HTTP Response](HTTPResponse.md)
+[HTTP Response](HttpResponse.md)
 
 # Definició dels EndPoints del WebService
 
