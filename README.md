@@ -34,7 +34,7 @@ Descripció:
 
 HOST: Domain port
 
-End-point (URL): https://api.tapatapp.com/users/get/recurs
+End-point (URL): [http://0.0.0.0:10050//tapatappV1/Username](http://127.0.0.1:10050//tapatappV1/Username)
 
 Method: GET
 
@@ -42,22 +42,17 @@ Tipus de petició (headers):
 
 Content-Type: application/json.
 
-Authorization: Bearer <token>.
-
 Parametres que necessita la petició:
 
--id = id
--username = username
--password = password
--email = email
+-username = String username
 
 Resposta:
 
-200 OK: si la petició es processa correctament.
-404 Not Found: si no es troba el recurs.
-
 {
-  "id": 123,
-  "nom": "Exemple",
-  "actiu": true
-}
+  "email": "usuari1@gmail.com",
+  "id": 1,
+  "username": "usuari1" 
+} 200
+
+"error": "User not found", 404
+"error": "Username not provided", 400
