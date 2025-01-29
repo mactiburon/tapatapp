@@ -30,11 +30,11 @@ Model E/R
 
 Què necessitem per cada End-point
 
-Descripció: 
+### Descripció: 
 
 HOST: Domain port
 
-End-point (URL): [http://0.0.0.0:10050//tapatappV1/Username](http://127.0.0.1:10050//tapatappV1/Username)
+End-point (URL): [http://0.0.0.0:10050//tapatappV1/Username](http://127.0.0.1:10050/tapatappV1/Username)
 
 Method: GET
 
@@ -55,4 +55,31 @@ Resposta:
 } 200
 
 "error": "User not found", 404
+
 "error": "Username not provided", 400
+
+### Descripció: 
+
+HOST: Domain port
+
+End-point (URL): [http://0.0.0.0:10050/tapatappV1/register](http://127.0.0.1:10050/tapatappV1/register)
+
+Method: GET
+
+Tipus de petició (headers): 
+
+Content-Type: application/json.
+
+Parametres que necessita la petició:
+
+-username = String username
+
+-password = String password
+
+-email = String email
+
+Resposta:
+
+"error": "Username already exists"}), 400
+
+"message": "User registered successfully", 201
