@@ -64,7 +64,7 @@ HOST: Domain port
 
 End-point (URL): [http://0.0.0.0:10050/tapatappV1/register](http://127.0.0.1:10050/tapatappV1/register)
 
-Method: GET
+Method: POST
 
 Tipus de petició (headers): 
 
@@ -83,3 +83,32 @@ Resposta:
 "error": "Username already exists"}), 400
 
 "message": "User registered successfully", 201
+
+### Descripció: 
+
+HOST: Domain port
+
+End-point (URL): [http://0.0.0.0:10050/tapatappV1/validate_parameters](http://127.0.0.1:10050/tapatappV1/validate_parameters)
+
+Method: GET
+
+Tipus de petició (headers): 
+
+Content-Type: application/json.
+
+Parametres que necessita la petició:
+
+-username = String username
+
+Resposta:
+
+{
+"errors": [
+"Username parameter is missing.",
+"Email parameter is missing."
+]
+}
+
+"errors": errors, 400
+
+"message": "Parameters are valid.", 200
