@@ -7,9 +7,12 @@ graph LR
     B --> E{Administrador}
     B --> F{Médico}
     B --> G{Tutor}
-    G --> I{Un Niño}
-    G --> J{Lista de Niños}
-    F --> K{Lista de Niños y Tutores}
+    F --> H{Un Niño}
+    G --> H
+    F --> I{Lista de Niños}
+    G --> J{Lista de Tutores}
     E --> L{Modificar Información}
     L --> M{Lista de Usuarios}
     M --> N{Modificar Usuario}
+    F --> O{Lista de Cuidadores}
+    O --> P{Añadir Cuidadores}
