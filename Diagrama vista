@@ -1,0 +1,16 @@
+graph LR
+    A[Inicio] --> B{Login}
+    B --> C[Registro]
+    C --> B
+    C --> D{He olvidado la contraseña}
+    B --> E{Administrador}
+    B --> F{Medico}
+    B --> G{Usuario}
+    B --> H{Tutor}
+    G --> I{Un Niño}
+    G --> J{Lista de Niños}
+    J --> I
+    F --> K{Lista de Niños y Tutores}
+    K --> I
+    E --> L{Modificar Información}
+    L --> I
