@@ -26,32 +26,33 @@ graph LR
     subgraph ListasMédico
         I{Lista de Niños}
         J{Lista de Tutores}
-    end
-    subgraph ListasCuidadores
-        O{Lista de Cuidadores}
-        P{Añadir Cuidadores}
+        K{Lista de Cuidadores}
+        L{Añadir Cuidadores}
     end
     subgraph ModificarInformación
-        L{Modificar Información}
+        M{Modificar Información}
     end
     subgraph ListaUsuarios
-        M{Lista de Usuarios}
+        N{Lista de Usuarios}
     end
     subgraph ModificarUsuario
-        N{Modificar Usuario}
+        O{Modificar Usuario}
     end
 
     A --> B
     B --> C
     B --> D
     C --> B
-    D --> C
+    D --> B
     B --> E
     B --> F
     B --> G
     F --> H
     G --> H
     F --> I
-    G --> J
-    E --> L
-    L --> M
+    F --> J
+    F --> K
+    K --> L
+    E --> M
+    M --> N
+    N --> O
