@@ -22,21 +22,20 @@ graph LR
     end
     subgraph Niño
         H{Un Niño}
+        I{Lista de Niños}
     end
     subgraph ListasMédico
-        I{Lista de Niños}
-        J{Lista de Tutores}
-        K{Lista de Cuidadores}
-        L{Añadir Cuidadores}
+        J{Lista de Cuidadores}
+        K{Añadir Cuidadores}
     end
     subgraph ModificarInformación
-        M{Modificar Información}
+        L{Modificar Información}
     end
     subgraph ListaUsuarios
-        N{Lista de Usuarios}
+        M{Lista de Usuarios}
     end
     subgraph ModificarUsuario
-        O{Modificar Usuario}
+        N{Modificar Usuario}
     end
 
     A --> B
@@ -49,10 +48,9 @@ graph LR
     B --> G
     F --> H
     G --> H
-    F --> I
+    G --> I
     F --> J
-    F --> K
-    K --> L
-    E --> M
+    J --> K
+    E --> L
+    L --> M
     M --> N
-    N --> O
