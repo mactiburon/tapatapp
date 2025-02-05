@@ -3,24 +3,24 @@ graph LR
         A[Inicio]
     end
     subgraph Login
-        B{Login}
+        B{Login<br>Usuario y Contraseña}
     end
     subgraph Registro
-        C[Registro]
+        C[Registro<br>Nombre, Apellido, Email, Contraseña]
     end
     subgraph RecuperarContraseña
-        D{Recuperar Contraseña}
+        D{Recuperar Contraseña<br>Email}
     end
     subgraph Usuario
-        E{Usuario}
-        I{Lista de Niños}
-        G{Ver Niños}
+        E{Usuario<br>Nombre, Apellido, Email}
+        I{Lista de Niños<br>Nombre, Edad, Fecha de Nacimiento}
+        G{Ver Niños<br>Nombre, Edad, Fecha de Nacimiento, Foto, Información Médica}
     end
     subgraph Perfil
-        F{Ver Perfil}
+        F{Ver Perfil<br>Nombre, Apellido, Email, Foto, Información Personal}
     end
     subgraph Niño
-        H{Historial de Parches}
+        H{Historial de Parches<br>Fecha, Hora, Tipo de Parche, Dosis}
     end
 
     A --> B
