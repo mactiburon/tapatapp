@@ -14,12 +14,12 @@ graph LR
     subgraph Usuario
         E{Usuario}
         I{Lista de Niños}
+        G{Ver Niños}
     end
     subgraph Perfil
         F{Ver Perfil}
     end
     subgraph Niño
-        G{Ver Niños}
         H{Historial de Parches}
     end
 
@@ -31,5 +31,6 @@ graph LR
     B --> E
     E --> F
     E --> I
+    E --> G
     I --> G
     G --> H
