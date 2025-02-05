@@ -1,18 +1,57 @@
 graph LR
-    A[Inicio] --> B{Login}
-    B --> C[Registro]
-    B --> D{Recuperar Contraseña}
+    subgraph Inicio
+        A[Inicio]
+    end
+    subgraph Login
+        B{Login}
+    end
+    subgraph Registro
+        C[Registro]
+    end
+    subgraph RecuperarContraseña
+        D{Recuperar Contraseña}
+    end
+    subgraph Administrador
+        E{Administrador}
+    end
+    subgraph Médico
+        F{Médico}
+    end
+    subgraph Tutor
+        G{Tutor}
+    end
+    subgraph Niño
+        H{Un Niño}
+    end
+    subgraph ListasMédico
+        I{Lista de Niños}
+        J{Lista de Tutores}
+    end
+    subgraph ListasCuidadores
+        O{Lista de Cuidadores}
+        P{Añadir Cuidadores}
+    end
+    subgraph ModificarInformación
+        L{Modificar Información}
+    end
+    subgraph ListaUsuarios
+        M{Lista de Usuarios}
+    end
+    subgraph ModificarUsuario
+        N{Modificar Usuario}
+    end
+
+    A --> B
+    B --> C
+    B --> D
     C --> B
     D --> C
-    B --> E{Administrador}
-    B --> F{Médico}
-    B --> G{Tutor}
-    F --> H{Un Niño}
+    B --> E
+    B --> F
+    B --> G
+    F --> H
     G --> H
-    F --> I{Lista de Niños}
-    G --> J{Lista de Tutores}
-    E --> L{Modificar Información}
-    L --> M{Lista de Usuarios}
-    M --> N{Modificar Usuario}
-    F --> O{Lista de Cuidadores}
-    O --> P{Añadir Cuidadores}
+    F --> I
+    G --> J
+    E --> L
+    L --> M
