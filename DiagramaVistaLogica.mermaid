@@ -19,10 +19,12 @@ graph LR
     end
     subgraph Tutor
         G{Tutor}
+        O{Ver Perfil}
     end
     subgraph Niño
         H{Un Niño}
         I{Lista de Niños}
+        P{Ver Perfil}
     end
     subgraph ListasMédico
         J{Lista de Cuidadores}
@@ -55,3 +57,5 @@ graph LR
     E --> L
     L --> M
     M --> N
+    G --> O
+    H --> P
