@@ -1,0 +1,35 @@
+graph LR
+    subgraph Inicio
+        A[Inicio]
+    end
+    subgraph Login
+        B{Login}
+    end
+    subgraph Registro
+        C[Registro]
+    end
+    subgraph RecuperarContraseña
+        D{Recuperar Contraseña}
+    end
+    subgraph Usuario
+        E{Usuario}
+    end
+    subgraph Perfil
+        F{Ver Perfil}
+    end
+    subgraph Niño
+        G{Ver Niños}
+    end
+    subgraph Cuidadores
+        H{Ver Cuidadores}
+    end
+
+    A --> B
+    B --> C
+    B --> D
+    C --> B
+    D --> B
+    B --> E
+    E --> F
+    E --> G
+    E --> H
