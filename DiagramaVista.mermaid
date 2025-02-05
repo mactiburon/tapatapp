@@ -13,15 +13,13 @@ graph LR
     end
     subgraph Usuario
         E{Usuario}
+        I{Lista de Niños}
     end
     subgraph Perfil
         F{Ver Perfil}
     end
     subgraph Niño
         G{Ver Niños}
-    end
-    subgraph Cuidadores
-        H{Ver Cuidadores}
     end
 
     A --> B
@@ -31,5 +29,5 @@ graph LR
     D --> B
     B --> E
     E --> F
-    E --> G
-    E --> H
+    E --> I
+    I --> G
