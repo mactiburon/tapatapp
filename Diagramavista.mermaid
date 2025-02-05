@@ -2,6 +2,8 @@ graph LR
     A[Inicio] --> B{Login}
     B --> C[Registro]
     B --> D{Recuperar Contraseña}
+    C --> B
+    D --> C
     B --> E{Administrador}
     B --> F{Médico}
     B --> G{Usuario}
@@ -10,3 +12,5 @@ graph LR
     G --> J{Lista de Niños}
     F --> K{Lista de Niños y Tutores}
     E --> L{Modificar Información}
+    L --> M{Lista de Usuarios}
+    M --> N{Modificar Usuario}
