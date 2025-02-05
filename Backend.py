@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 
 class User:
     def __init__(self, id, username, password, email):
@@ -7,6 +7,11 @@ class User:
         self.password = password
         self.email = email
     
+    def __init__(self, username, email, password=None):
+        self.username = username
+        self.email = "DefaultEmail"
+        self.password = password
+
     def __str__(self):
         return f"ID: {self.id}, User: {self.username}, Pass: {self.password}, Email: {self.email}"
 
@@ -29,8 +34,29 @@ class DaoUsers:
 
         return None
 
+class Vista:
+    def __init__(self, dao_users):
+        self.dao_users = dao_users
+
+    def get_user_data(self, username):
+        user = self.dao_users.getUserByUsername(username)
+        if user:
+            return {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email
+            }
+        return None
+
+    def render_user_view(self, user_data):
+        if user_data:
+            return render_template('user.html', user=user_data)
+        else:
+            return "Error: Usuario no encontrado"
+
 app = Flask(__name__)
 DaoUser = DaoUsers()
+vista = Vista(DaoUser)
 
 @app.route('/tapatappV1/validate_parameters', methods=['GET'])
 def validate_parameters():
@@ -93,3 +119,12 @@ def register():
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({"error": "Not found"}), 404
+
+@app.route('/user/<username>')
+def show_user(username):
+    """Vista que muestra la información del usuario."""
+    user_data = vista.get_user_data(username)
+    return vista.render_user_view(user_data)
+
+if __name__ == '__main__':
+    app.run(debug=True, host="0.0.0.0", port=10050)
