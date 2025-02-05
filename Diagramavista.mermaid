@@ -1,18 +1,45 @@
-graph LR
-    A[Inicio] --> B{Login}
-    B --> C[Registro]
+flowchart-v2
+    subgraph Inicio
+        A[Inicio]
+    end
+    subgraph Login
+        B{Login}
+    end
+    subgraph Registro
+        C[Registro]
+        D{He olvidado la contraseña}
+    end
+    subgraph Administrador
+        E{Administrador}
+        L{Modificar Información}
+    end
+    subgraph Medico
+        F{Medico}
+        K{Lista de Niños y Tutores}
+    end
+    subgraph Usuario
+        G{Usuario}
+        I{Un Niño}
+        J{Lista de Niños}
+    end
+    subgraph Tutor
+        H{Tutor}
+    end
+
+    A --> B
+    B --> C
     C --> B
-    C --> D{He olvidado la contraseña}
-    B --> E{Administrador}
-    B --> F{Medico}
-    B --> G{Usuario}
-    B --> H{Tutor}
-    G --> I{Un Niño}
-    G --> J{Lista de Niños}
+    C --> D
+    B --> E
+    B --> F
+    B --> G
+    B --> H
+    G --> I
+    G --> J
     J --> I
-    F --> K{Lista de Niños y Tutores}
+    F --> K
     K --> I
-    E --> L{Modificar Información}
+    E --> L
     L --> I
     G --> K
     H --> I
