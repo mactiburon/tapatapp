@@ -1,5 +1,5 @@
-import dadesServer as dades
-from dadesServer import User
+import Prototype2.dadesServer as dades
+from Prototype2.dadesServer import User
 
 # Exemple d'ús de la llista d'usuaris
 for x in dades.users:
