@@ -19,6 +19,7 @@ graph LR
     end
     subgraph Perfil
         J{Ver Perfil<br>Nombre, Apellido, Email, Información Personal}
+        L{Añadir Niño o Tutorizar Niño}
     end
     subgraph Niño
         K{Historial de Parches<br>Fecha, Hora, Estado, Recuento de horas}
@@ -35,3 +36,5 @@ graph LR
     G --> H
     H --> I
     I --> K
+    J --> L
+    L --> J
