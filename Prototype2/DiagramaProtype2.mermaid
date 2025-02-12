@@ -1,61 +1,78 @@
 classDiagram
-    class Inicio {
-        +Inicio()
+    %% Classes principals
+    class Inici {
+        +String missatgeBenvinguda
     }
+
 
     class Login {
-        +String usuario
-        +String contraseña
-        +Login(usuario: String, contraseña: String)
+        +String usuari
+        +String contrasenya
+        +boolean validarCredencials()
     }
 
-    class RecuperarContraseña {
+
+    class Registre {
+        +String nom
+        +String cognom
         +String email
-        +RecuperarContraseña(email: String)
+        +String contrasenya
+        +boolean registrarUsuari()
     }
 
-    class Registro {
-        +String nombre
-        +String apellido
+
+    class RecuperarContrasenya {
         +String email
-        +String contraseña
-        +Registro(nombre: String, apellido: String, email: String, contraseña: String)
-        +AñadirNiño(nombreNiño: String, edadNiño: Int, fechaNacimiento: Date, informaciónMédica: String)
+        +String codiRecuperacio
+        +boolean enviarCodi()
+        +boolean canviarContrasenya()
     }
 
-    class Usuario {
-        +String nombre
-        +String apellido
+
+    class Usuari {
+        +String nom
+        +String cognom
         +String email
-        +List~Niño~ listaDeNiños
-        +VerNiños()
+        +Llista~Nen~ llistaNens
+        +void afegirNen(Nen nen)
     }
+
 
     class Perfil {
-        +VerPerfil()
-        +AñadirNiño(nombreNiño: String, edadNiño: Int, fechaNacimiento: Date, informaciónMédica: String)
+        +String nom
+        +String cognom
+        +String email
+        +String altresDades
+        +void veurePerfil()
+        +void afegirNen(Nen nen)
     }
 
-    class Niño {
-        +String nombre
-        +Int edad
-        +Date fechaNacimiento
-        +String informaciónMédica
-        +List~Parche~ historialDeParches
+
+    class Nen {
+        +String nom
+        +int edat
+        +Date dataNaixement
+        +String informacioMedica
+        +Llista~HistorialTapat~ historialTapat
+        +void afegirHistorial(HistorialTapat historial)
     }
 
-    class Parche {
-        +Date fecha
+
+    class HistorialTapat {
+        +Date data
         +Time hora
-        +String estado
-        +Int recuentoDeHoras
+        +String estat
+        +int totalHores
     }
 
-    Inicio --> Login
-    Login --> Registro
-    Login --> RecuperarContraseña
-    Registro --> Usuario
-    Usuario --> Perfil
-    Usuario --> Niño
-    Niño --> Parche
-    Perfil --> Niño
+
+    %% Relacions entre classes
+    Inici --> Login
+    Login --> Registre
+    Login --> RecuperarContrasenya
+    Login --> Usuari
+    Registre --> Nen
+    Usuari --> Nen
+    Usuari --> Perfil
+    Perfil --> Nen
+    Nen --> HistorialTapat
