@@ -112,5 +112,3 @@ Resposta:
 "errors": errors, 400
 
 "message": "Parameters are valid.", 200
-
-aaa
