@@ -4,6 +4,7 @@ graph LR
     end
     subgraph Login
         B{Login<br>Usuario y Contraseña}
+        H{Añadir Niño<br>Nombre, Edad, Fecha de Nacimiento}
     end
     subgraph Registro
         C[Registro<br>Nombre, Apellido, Email, Contraseña<br>Nombre del Niño, Edad del Niño, Fecha de Nacimiento del Niño]
@@ -18,16 +19,13 @@ graph LR
         I{Lista de Niños<br>Nombre, Edad, Fecha de Nacimiento}
         G{Ver Niños<br>Nombre, Edad, Fecha de Nacimiento, Información Médica}
     end
-    subgraph Añadir Niño
-        H{Añadir Niño<br>Nombre, Edad, Fecha de Nacimiento}
-    end
 
     A --> B
     B --> C
     B --> D
     C --> B
     D --> B
-    C --> H
+    B --> H
     H --> I
     I --> G
     G --> H
