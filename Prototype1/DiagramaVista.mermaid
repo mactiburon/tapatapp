@@ -7,7 +7,6 @@ graph LR
     end
     subgraph Registro
         C[Registro<br>Nombre, Apellido, Email, Contraseña]
-        D{Ver Niño<br>Nombre, Edad, Fecha de Nacimiento, Información Médica}
         E{Añadir Niño o Tutorizar Niño}
     end
     subgraph RecuperarContraseña
@@ -27,8 +26,8 @@ graph LR
 
     A --> B
     B --> C
-    C --> D
     C --> E
+    E --> C
     B --> F
     F --> B
     B --> G
