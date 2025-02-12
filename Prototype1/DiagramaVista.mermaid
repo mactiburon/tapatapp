@@ -4,20 +4,23 @@ graph LR
     end
     subgraph Login
         B{Login<br>Usuario y Contraseña}
-        H{Añadir Niño<br>Nombre, Edad, Fecha de Nacimiento}
     end
     subgraph Registro
-        C[Registro<br>Nombre, Apellido, Email, Contraseña<br>Nombre del Niño, Edad del Niño, Fecha de Nacimiento del Niño]
+        C[Registro<br>Nombre, Apellido, Email, Contraseña]
     end
     subgraph RecuperarContraseña
         D{Recuperar Contraseña<br>Email}
+    end
+    subgraph Usuario
+        E{Usuario<br>Nombre, Apellido, Email}
+        I{Lista de Niños<br>Nombre, Edad, Fecha de Nacimiento}
+        G{Ver Niños<br>Nombre, Edad, Fecha de Nacimiento, Información Médica}
     end
     subgraph Perfil
         F{Ver Perfil<br>Nombre, Apellido, Email, Información Personal}
     end
     subgraph Niño
-        I{Lista de Niños<br>Nombre, Edad, Fecha de Nacimiento}
-        G{Ver Niños<br>Nombre, Edad, Fecha de Nacimiento, Información Médica}
+        H{Historial de Parches<br>Fecha, Hora, Estado, Recuento de horas}
     end
 
     A --> B
@@ -25,8 +28,9 @@ graph LR
     B --> D
     C --> B
     D --> B
-    B --> H
-    H --> I
+    B --> E
+    E --> F
+    E --> I
+    E --> G
     I --> G
     G --> H
-    I --> F
