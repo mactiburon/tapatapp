@@ -4,39 +4,46 @@ classDiagram
         +String missatgeBenvinguda
     }
 
-
     class Login {
         +String usuari
         +String contrasenya
         +boolean validarCredencials()
+        +void mostrarError(String missatge)
     }
-
 
     class Registre {
         +String nom
         +String cognom
         +String email
         +String contrasenya
+        +boolean validarDades()
         +boolean registrarUsuari()
     }
-
 
     class RecuperarContrasenya {
         +String email
         +String codiRecuperacio
+        +boolean validarEmail()
         +boolean enviarCodi()
-        +boolean canviarContrasenya()
+        +boolean canviarContrasenya(String novaContrasenya)
     }
-
 
     class Usuari {
         +String nom
         +String cognom
         +String email
-        +Llista~Nen~ llistaNens
+        +LlistaNens llistaNens
         +void afegirNen(Nen nen)
+        +void eliminarNen(String nomNen)
+        +Nen buscarNen(String nomNen)
     }
 
+    class LlistaNens {
+        +List~Nen~ nens
+        +void afegirNen(Nen nen)
+        +void eliminarNen(String nomNen)
+        +Nen buscarNen(String nomNen)
+    }
 
     class Perfil {
         +String nom
@@ -44,27 +51,31 @@ classDiagram
         +String email
         +String altresDades
         +void veurePerfil()
-        +void afegirNen(Nen nen)
+        +void actualitzarPerfil(String nom, String cognom, String email)
     }
-
 
     class Nen {
         +String nom
         +int edat
-        +Date dataNaixement
+        +LocalDate dataNaixement
         +String informacioMedica
-        +Llista~HistorialTapat~ historialTapat
+        +LlistaHistorial historialTapat
         +void afegirHistorial(HistorialTapat historial)
     }
 
+    class LlistaHistorial {
+        +List~HistorialTapat~ historial
+        +void afegirHistorial(HistorialTapat historial)
+        +void eliminarHistorial(LocalDate data)
+        +HistorialTapat buscarHistorial(LocalDate data)
+    }
 
     class HistorialTapat {
-        +Date data
-        +Time hora
+        +LocalDate data
+        +LocalTime hora
         +String estat
         +int totalHores
     }
-
 
     %% Relacions entre classes
     Inici --> Login
@@ -72,7 +83,9 @@ classDiagram
     Login --> RecuperarContrasenya
     Login --> Usuari
     Registre --> Nen
-    Usuari --> Nen
+    Usuari --> LlistaNens
+    LlistaNens --> Nen
     Usuari --> Perfil
     Perfil --> Nen
-    Nen --> HistorialTapat
+    Nen --> LlistaHistorial
+    LlistaHistorial --> HistorialTapat
