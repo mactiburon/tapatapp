@@ -1,3 +1,11 @@
+
+
+
+
+
+
+You're right, that makes the flow much more efficient! Let's streamline the process. Here's the updated flowchart with the changes you suggested:
+
 graph LR
     subgraph Inicio
         A[Inicio]
@@ -6,21 +14,20 @@ graph LR
         B{Login<br>Usuario y Contraseña}
     end
     subgraph Registro
-        C[Registro<br>Nombre, Apellido, Email, Contraseña]
+        C[Registro<br>Nombre, Apellido, Email, Contraseña<br>Nombre del Niño, Edad del Niño, Fecha de Nacimiento del Niño]
     end
     subgraph RecuperarContraseña
         D{Recuperar Contraseña<br>Email}
-    end
-    subgraph Usuario
-        E{Usuario<br>Nombre, Apellido, Email}
-        I{Lista de Niños<br>Nombre, Edad, Fecha de Nacimiento}
-        G{Ver Niños<br>Nombre, Edad, Fecha de Nacimiento, Información Médica}
     end
     subgraph Perfil
         F{Ver Perfil<br>Nombre, Apellido, Email, Información Personal}
     end
     subgraph Niño
-        H{Historial de Parches<br>Fecha, Hora, Estado, Recuento de horas}
+        I{Lista de Niños<br>Nombre, Edad, Fecha de Nacimiento}
+        G{Ver Niños<br>Nombre, Edad, Fecha de Nacimiento, Información Médica}
+    end
+    subgraph Añadir Niño
+        H{Añadir Niño<br>Nombre, Edad, Fecha de Nacimiento}
     end
 
     A --> B
@@ -28,9 +35,8 @@ graph LR
     B --> D
     C --> B
     D --> B
-    B --> E
-    E --> F
-    E --> I
-    E --> G
+    C --> H
+    H --> I
     I --> G
     G --> H
+    I --> F
