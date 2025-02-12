@@ -4,23 +4,30 @@ classDiagram
     }
 
     class Login {
+        +String usuario
+        +String contraseña
         +Login(usuario: String, contraseña: String)
     }
 
     class RecuperarContraseña {
+        +String email
         +RecuperarContraseña(email: String)
     }
 
     class Registro {
+        +String nombre
+        +String apellido
+        +String email
+        +String contraseña
         +Registro(nombre: String, apellido: String, email: String, contraseña: String)
         +AñadirNiño(nombreNiño: String, edadNiño: Int, fechaNacimiento: Date, informaciónMédica: String)
     }
 
     class Usuario {
-        +Nombre: String
-        +Apellido: String
-        +Email: String
-        +ListaDeNiños: List~Niño~
+        +String nombre
+        +String apellido
+        +String email
+        +List~Niño~ listaDeNiños
         +VerNiños()
     }
 
@@ -30,18 +37,18 @@ classDiagram
     }
 
     class Niño {
-        +Nombre: String
-        +Edad: Int
-        +FechaNacimiento: Date
-        +InformaciónMédica: String
-        +HistorialDeParches: List~Parche~
+        +String nombre
+        +Int edad
+        +Date fechaNacimiento
+        +String informaciónMédica
+        +List~Parche~ historialDeParches
     }
 
     class Parche {
-        +Fecha: Date
-        +Hora: Time
-        +Estado: String
-        +RecuentoDeHoras: Int
+        +Date fecha
+        +Time hora
+        +String estado
+        +Int recuentoDeHoras
     }
 
     Inicio --> Login
