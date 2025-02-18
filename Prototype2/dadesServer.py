@@ -23,7 +23,116 @@ class Child:
   
     def __str__(self):
         return self.child_name + ":" + self.sleep_average + ":" + self.treatment_id  + ":" + self.time
-'''
+
+class Tap:
+    def __init__(self, id, child_id, status_id, user_id, init, end):
+        self.id = id
+        self.child_id = child_id
+        self.status_id = status_id
+        self.user_id = user_id
+        self.init = init
+        self.end = end
+
+    def __str__(self):
+        return self.id + ":" + self.child_id + ":" + self.status_id  + ":" + self.user_id + ":" + self.init + ":" + self.end
+
+class Role:
+    def __init__(self, id, type_rol):
+        self.id = id
+        self.type_rol = type_rol
+
+    def __str__(self):
+        return self.id + ":" + self.type_rol
+    
+class Status:
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+
+    def __str__(self):
+        return self.id + ":" + self.name
+    
+class Treatment:
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+
+    def __str__(self):
+        return self.id + ":" + self.name
+
+class LlistaNens:
+    def __init__(self):
+        self.nens = []
+
+    def afegirNen(self, nen: Child):
+        self.nens.append(nen)
+
+    def eliminarNen(self, nomNen: str):
+        self.nens = [nen for nen in self.nens if nen.child_name != nomNen]
+
+    def buscarNen(self, nomNen: str) -> Child:
+        for nen in self.nens:
+            if nen.child_name == nomNen:
+                return nen
+        return None
+
+
+class Perfil:
+    def __init__(self, nom: str, cognom: str, email: str, altresDades: str):
+        self.nom = nom
+        self.cognom = cognom
+        self.email = email
+        self.altresDades = altresDades
+
+    def veurePerfil(self):
+        print(f"Nom: {self.nom}, Cognom: {self.cognom}, Email: {self.email}, Altres dades: {self.altresDades}")
+
+    def actualitzarPerfil(self, nom: str, cognom: str, email: str):
+        self.nom = nom
+        self.cognom = cognom
+        self.email = email
+        print("Perfil actualitzat correctament.")
+
+
+class Nen:
+    def __init__(self, nom: str, edat: int, dataNaixement: date, informacioMedica: str):
+        self.nom = nom
+        self.edat = edat
+        self.dataNaixement = dataNaixement
+        self.informacioMedica = informacioMedica
+        self.historialTapat = LlistaHistorial()
+
+    def afegirHistorial(self, historial: 'HistorialTapat'):
+        self.historialTapat.afegirHistorial(historial)
+
+
+class LlistaHistorial:
+    def __init__(self):
+        self.historial = []
+
+    def afegirHistorial(self, historial: 'HistorialTapat'):
+        self.historial.append(historial)
+
+    def eliminarHistorial(self, data: date):
+        self.historial = [h for h in self.historial if h.data != data]
+
+    def buscarHistorial(self, data: date) -> 'HistorialTapat':
+        for h in self.historial:
+            if h.data == data:
+                return h
+        return None
+
+
+class HistorialTapat:
+    def __init__(self, data: date, hora: time, estat: str, totalHores: int):
+        self.data = data
+        self.hora = hora
+        self.estat = estat
+        self.totalHores = totalHores
+
+    def __str__(self):
+        return f"Data: {self.data}, Hora: {self.hora}, Estat: {self.estat}, Total hores: {self.totalHores}"
+
 children = [
     Child(id=1, child_name="Carol Child", sleep_average=8, treatment_id=1, time=6),
     Child(id=2, child_name="Jaco Child", sleep_average=10, treatment_id=2, time=6)
@@ -59,4 +168,4 @@ treatments = [
     Treatment(id=1, name='Hour'),
     Treatment(id=2, name='percentage')
 ]
-'''
+
