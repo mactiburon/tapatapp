@@ -1,0 +1,43 @@
+classDiagram
+    class User {
+        +int id
+        +string username
+        +string password
+        +string email
+        +__str__(): string
+    }
+
+    class UserDAO {
+        +static string BASE_URL
+        +static get_user_by_username(username): User
+    }
+
+    class Child {
+        +int id
+        +string child_name
+        +int sleep_average
+        +int treatment_id
+        +int time
+        +__str__(): string
+    }
+
+    class ChildDAO {
+        +static string BASE_URL
+        +static get_child_by_name(child_name): Child
+    }
+
+    class ViewConsole {
+        +static get_input(prompt): string
+        +static show_user_info(username): void
+        +static show_child_info(child_name): void
+    }
+
+    class Main {
+        +main loop for user interaction
+    }
+
+    UserDAO --> User : "Fetches"
+    ChildDAO --> Child : "Fetches"
+    ViewConsole --> UserDAO : "Calls"
+    ViewConsole --> ChildDAO : "Calls"
+    Main --> ViewConsole : "Uses"
