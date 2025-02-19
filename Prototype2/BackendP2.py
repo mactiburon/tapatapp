@@ -1,3 +1,6 @@
+from datetime import date, time
+from flask import Flask, request
+
 class User:
     def __init__(self, id, username, password, email):
         self.id = id
@@ -14,8 +17,8 @@ users = [
 ]
 
 class Child:
-    def __init__(self, status_id, child_name, sleep_average, treatment_id, time):
-        self.status_id = status_id
+    def __init__(self, id, child_name, sleep_average, treatment_id, time):
+        self.id = id
         self.child_name = child_name
         self.sleep_average = sleep_average
         self.treatment_id = treatment_id
@@ -134,8 +137,8 @@ class HistorialTapat:
         return f"Data: {self.data}, Hora: {self.hora}, Estat: {self.estat}, Total hores: {self.totalHores}"
 
 children = [
-    Child(id=1, child_name="Carol Child", sleep_average=8, treatment_id=1, time=6),
-    Child(id=2, child_name="Jaco Child", sleep_average=10, treatment_id=2, time=6)
+    Nen(id=1, child_name="Carol Child", sleep_average=8, treatment_id=1, time=6),
+    Nen(id=2, child_name="Jaco Child", sleep_average=10, treatment_id=2, time=6)
 ]
 
 taps = [

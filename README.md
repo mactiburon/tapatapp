@@ -112,3 +112,9 @@ Resposta:
 "errors": errors, 400
 
 "message": "Parameters are valid.", 200
+
+## Prototip 2
+
+### Wireframes
+
+[Diagrama](DiagramaVistaP2.mermaid)
