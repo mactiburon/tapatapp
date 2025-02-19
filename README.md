@@ -117,4 +117,4 @@ Resposta:
 
 ### Wireframes
 
-[Diagrama](DiagramaVistaP2.mermaid)
+[Diagrama](https://github.com/mactiburon/tapatapp/blob/main/Prototype2/DiagramaVistaP2.mermaid)
