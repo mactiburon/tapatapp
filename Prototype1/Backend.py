@@ -1,36 +1,39 @@
 from flask import Flask, request, jsonify, render_template
 
-app = Flask(__name__)
-
-# Clase User corregida
 class User:
-    def __init__(self, id=None, username=None, password=None, email=None):
+    def __init__(self, id, username, password, email):
         self.id = id
         self.username = username
         self.password = password
-        self.email = email if email else "DefaultEmail"
+        self.email = email
+    
+    def __init__(self, username, email, password=None):
+        self.username = username
+        self.email = "DefaultEmail"
+        self.password = password
 
     def __str__(self):
         return f"ID: {self.id}, User: {self.username}, Pass: {self.password}, Email: {self.email}"
 
-# Lista de usuarios inicial
 ListUsers = [
     User(id=1, username="usuari1", password="12345", email="usuari1@gmail.com"),
     User(id=2, username="usuari2", password="123", email="usuari2@gmail.com")
 ]
 
-# Clase DaoUsers
 class DaoUsers:
     def __init__(self):
         self.users = ListUsers
         
     def getUserByUsername(self, username):
+
         for u in self.users:
+
             if u.username == username:
+
                 return u
+
         return None
 
-# Clase Vista
 class Vista:
     def __init__(self, dao_users):
         self.dao_users = dao_users
@@ -47,15 +50,14 @@ class Vista:
 
     def render_user_view(self, user_data):
         if user_data:
-            return jsonify(user_data)  # Devuelve JSON en lugar de renderizar una plantilla
+            return render_template('user.html', user=user_data)
         else:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            return "Error: Usuario no encontrado"
 
-# Instancias de DaoUsers y Vista
+app = Flask(__name__)
 DaoUser = DaoUsers()
 vista = Vista(DaoUser)
 
-# Ruta para validar parámetros
 @app.route('/tapatappV1/validate_parameters', methods=['GET'])
 def validate_parameters():
     username = request.args.get('username')
@@ -64,8 +66,11 @@ def validate_parameters():
     errors = []
     
     if not username:
+
         errors.append("Username parameter is missing.")
+
     if not email:
+
         errors.append("Email parameter is missing.")
         
     if errors:
@@ -73,25 +78,32 @@ def validate_parameters():
     
     return jsonify({"message": "Parameters are valid."}), 200
 
-# Ruta para obtener información de un usuario
 @app.route('/tapatappV1/Username', methods=["GET"])
 def getUse():
     username = request.args.get('username')
     if username:
         user = DaoUser.getUserByUsername(username)
+        
         if user:
+
             return jsonify({
                 "id": user.id,
                 "username": user.username,
                 "email": user.email
             }), 200
+
         return jsonify({"error": "User not found"}), 404
+
     return jsonify({"error": "Username not provided"}), 400
 
-# Ruta para registrar un nuevo usuario
+if __name__ == '__main__':
+    app.run(debug=True, host="0.0.0.0", port=10050)
+
 @app.route('/tapatappV1/register', methods=['POST'])
 def register():
+
     data = request.get_json()
+
     username = data.get('username')
     password = data.get('password')
     email = data.get('email')
@@ -104,17 +116,15 @@ def register():
 
     return jsonify({"message": "User registered successfully"}), 201
 
-# Ruta para mostrar información de un usuario
-@app.route('/user/<username>')
-def show_user(username):
-    user_data = vista.get_user_data(username)
-    return vista.render_user_view(user_data)
-
-# Manejador de errores 404
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({"error": "Not found"}), 404
 
-# Iniciar la aplicación
+@app.route('/user/<username>')
+def show_user(username):
+    """Vista que muestra la información del usuario."""
+    user_data = vista.get_user_data(username)
+    return vista.render_user_view(user_data)
+
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=10050)

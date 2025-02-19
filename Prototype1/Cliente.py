@@ -5,28 +5,27 @@ class User:
     def __init__(self, id, username, password, email):
         self.id = id
         self.username = username
-        self.password = password
+        self.password = password  # Puede ser None si el backend no la devuelve
         self.email = email
     
     def __str__(self):
-        return f"Id: {self.id}, Username: {self.username}, Password: {self.password}, Email: {self.email}"
+        return f"Id: {self.id}, Username: {self.username}, Email: {self.email}"
 
 class UserDAO:
     @staticmethod
     def get_user_by_username(username):
         """Obtiene la información de un usuario por su nombre de usuario."""
         try:
-            # Hacer la solicitud al backend
-            response = requests.get(f'http://localhost:10050/prototip1/getuser?username={username}')
+            # Hacer la solicitud al backend con la ruta correcta
+            response = requests.get(f'http://localhost:10050/tapatappV1/Username?username={username}')
             
             # Verificar si la solicitud fue exitosa
             if response.status_code == 200:
                 user_data = response.json()
-                # Crear una instancia de User con los datos recibidos
-                user = User(user_data['id'], user_data['username'], user_data['password'], user_data['email'])
+                user = User(user_data['id'], user_data['username'], None, user_data['email'])  # Password como None
                 return user
             else:
-                # Si el usuario no existe o hay un error, devolver None
+                # Manejar errores
                 print(f"Error: {response.status_code} - {response.json().get('error', 'Unknown error')}")
                 return None
         except requests.exceptions.RequestException as e:
