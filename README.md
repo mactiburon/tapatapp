@@ -118,3 +118,11 @@ Resposta:
 ### Wireframes
 
 [Diagrama](https://github.com/mactiburon/tapatapp/blob/main/Prototype2/DiagramaVistaP2.mermaid)
+
+### Descripció del prototip 2
+
+### Diagrama de Arquitectura 
+
+### Diagrama de Backend
+
+### Diagrama de Frontend
