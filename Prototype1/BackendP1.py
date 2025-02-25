@@ -7,7 +7,8 @@ class User:
         self.password = password
         self.email = email
     
-    def __init__(self, username, email, password=None):
+    def __init__(self, id, username, email, password=None):
+        self.id = id
         self.username = username
         self.email = "DefaultEmail"
         self.password = password
