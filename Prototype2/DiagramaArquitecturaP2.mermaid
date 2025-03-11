@@ -1,40 +1,26 @@
 graph TD
-    A[Usuario] -->|Login/Register| B[UsuarioDAO]
-    B --> C[API: /login, /registro]
-    C --> D[Servidor]
-    D -->|Responde| B
-    B -->|Usuario Validado| A
+    A[Usuario] --> B[UsuarioDAO]
+    B --> C[API: /login]
+    B --> D[API: /registro]
+    A --> E[ViewConsole]
+    E --> F[Get Input]
+    F --> B
 
-    E[Nen] -->|Consultar Datos Niño| F[NenDAO]
-    F --> G[API: /children/{child_name}]
-    G --> D
-    D -->|Responde| F
-    F -->|Datos Niño| E
+    G[Nen] --> H[NenDAO]
+    H --> I[API: /children/{child_name}]
+    G --> J[HistorialTapat]
+    J --> K[LlistaHistorial]
+    K --> L[API: /historial/{child_name}]
+    G --> E
 
-    E --> H[HistorialTapat] 
-    H --> I[LlistaHistorial]
-    I -->|Mostrar Historial| E
-    I --> J[HistorialTapat: Fecha, Hora, Estado, TotalHoras]
-
-    subgraph UI
-        I1[ViewConsole]
-        I1 -->|Muestra Menú| A
-        I1 -->|Recibe Input| B
-        I1 -->|Consulta Niño| E
+    subgraph Endpoints
+        C[API: /login]
+        D[API: /registro]
+        I[API: /children/{child_name}]
+        L[API: /historial/{child_name}]
     end
 
-    subgraph API_Endpoints
-        C1[POST /login]
-        C2[POST /registro]
-        C3[GET /children/{child_name}]
-        C4[GET /children/{child_name}/{date}]
-        C5[GET /roles]
-        C6[GET /statuses]
-        C7[GET /treatments]
-    end
-
-    A -->|Interacción Consola| I1
-    I1 -->|Realiza Solicitudes API| C1
-    I1 -->|Realiza Solicitudes API| C2
-    I1 -->|Consulta Niño| C3
-    I1 -->|Consulta Historial Niño| C4
+    E --> F
+    F --> B
+    H --> I
+    K --> L
