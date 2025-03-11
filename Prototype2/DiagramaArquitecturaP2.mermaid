@@ -1,40 +1,12 @@
 graph TD
-    A[Usuario] -->|Login/Register| B[UsuarioDAO]
-    B --> C[API: /login, /registro]
-    C --> D[Servidor]
-    D -->|Responde| B
-    B -->|Usuario Validado| A
-
-    E[Nen] -->|Consultar Datos Niño| F[NenDAO]
-    F --> G[API: /children/{child_name}]
-    G --> D
-    D -->|Responde| F
-    F -->|Datos Niño| E
-
-    E --> H[HistorialTapat] 
-    H --> I[LlistaHistorial]
-    I -->|Mostrar Historial| E
-    I --> J[HistorialTapat: Fecha, Hora, Estado, TotalHoras]
-
-    subgraph UI
-        I1[ViewConsole]
-        I1 -->|Muestra Menú| A
-        I1 -->|Recibe Input| B
-        I1 -->|Consulta Niño| E
-    end
-
-    subgraph API_Endpoints
-        C1[POST /login]
-        C2[POST /registro]
-        C3[GET /children/{child_name}]
-        C4[GET /children/{child_name}/{date}]
-        C5[GET /roles]
-        C6[GET /statuses]
-        C7[GET /treatments]
-    end
-
-    A -->|Interacción Consola| I1
-    I1 -->|Realiza Solicitudes API| C1
-    I1 -->|Realiza Solicitudes API| C2
-    I1 -->|Consulta Niño| C3
-    I1 -->|Consulta Historial Niño| C4
+    A[Usuario] -->|Interacción| B[UsuarioDAO]
+    B -->|Llama a| C[API: /login]
+    B -->|Llama a| D[API: /registro]
+    E[ViewConsole] -->|Solicita entrada| B
+    E -->|Muestra opciones| F[Opciones de Menú]
+    G[Nen] -->|Contiene| H[HistorialTapat]
+    H -->|Gestiona| I[LlistaHistorial]
+    F -->|Opción 1: Login| B
+    F -->|Opción 2: Registro| B
+    F -->|Opción 3: Ver Niño| G
+    F -->|Opción 4: Salir| J[Salir]
