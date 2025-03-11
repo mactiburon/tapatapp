@@ -115,14 +115,56 @@ Resposta:
 
 ## Prototip 2
 
-### Wireframes
+## Wireframes
 
 [Diagrama](https://github.com/mactiburon/tapatapp/blob/main/Prototype2/DiagramaVistaP2.mermaid)
 
-### Descripció del prototip 2
+## Descripció del prototip 2
 
-### Diagrama de Arquitectura 
+### Funcionalidades Principales
+### Gestión de Usuarios:
 
-### Diagrama de Backend
+Los usuarios pueden registrarse y acceder a la aplicación mediante un sistema de login.
+La aplicación gestiona diferentes tipos de usuarios, como Administradores, Tutores, Cuidadores y Seguimiento Médico.
+El acceso a las funcionalidades de la aplicación está restringido según el rol de cada usuario.
 
-### Diagrama de Frontend
+### Gestión de Niños:
+
+Los tutores y cuidadores pueden registrar información sobre los niños, incluyendo su nombre, edad, fecha de nacimiento y cualquier información médica relevante.
+Los registros también incluyen un historial de sueño, donde se almacena información detallada sobre el sueño de cada niño, como las fechas, las horas de inicio y fin, y el estado del sueño (por ejemplo, si están dormidos, despiertos, etc.).
+Esta información se organiza en un formato de fácil acceso y consulta para el personal autorizado.
+
+### Seguimiento del Sueño:
+
+Cada niño tiene un historial de sueño asociado con fechas específicas, donde se pueden registrar las horas de sueño y la calidad del descanso.
+Este seguimiento es útil para los profesionales médicos que deseen realizar un seguimiento de los hábitos de sueño de los niños, detectando posibles irregularidades o patrones que requieran atención.
+
+### Interacción con la API:
+
+La aplicación se comunica con un servidor para gestionar el login, el registro de usuarios y la obtención de datos de los niños.
+Los usuarios pueden interactuar con el sistema mediante solicitudes HTTP, como el login, el registro de nuevos niños y la obtención de información sobre el historial médico de los niños.
+
+### Interfaz de Consola:
+
+La aplicación cuenta con una interfaz de consola amigable que permite a los usuarios interactuar con el sistema a través de un menú con opciones como Login, Registro de Usuario, Ver Información de Niños, y Salir.
+Esta interfaz facilita la consulta y actualización de datos médicos de manera intuitiva.
+Componentes del Proyecto
+
+### Clases Principales:
+
+Usuario: Representa a los usuarios del sistema con sus atributos como nombre, apellido, email y contraseña.
+Nen: Representa a los niños, con datos como nombre, edad, fecha de nacimiento, información médica y su historial de sueño.
+UsuarioDAO: Contiene métodos para interactuar con el servidor y gestionar el login y registro de usuarios.
+NenDAO: Se encarga de obtener la información de los niños desde la base de datos del servidor.
+ViewConsole: Proporciona una interfaz de consola para interactuar con el usuario, permitiéndole ingresar datos y mostrar información.
+
+### Interacción con el Servidor:
+
+La aplicación realiza solicitudes HTTP POST y GET al servidor para gestionar la autenticación de usuarios y recuperar los datos de los niños.
+En el caso de un login o registro, el sistema envía las credenciales al servidor y recibe una respuesta con el estado de la operación.
+
+## Diagrama de Arquitectura 
+
+## Diagrama de Backend
+
+## Diagrama de Frontend
