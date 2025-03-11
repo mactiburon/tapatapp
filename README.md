@@ -165,6 +165,9 @@ ViewConsole: Proporciona una interfaz de consola para interactuar con el usuario
 La aplicación realiza solicitudes HTTP POST y GET al servidor para gestionar la autenticación de usuarios y recuperar los datos de los niños.
 En el caso de un login o registro, el sistema envía las credenciales al servidor y recibe una respuesta con el estado de la operación.
 
+## Diagrama de Arquitectura
+[Diagrama de arquitectura Prototipo 2](https://github.com/mactiburon/tapatapp/blob/main/Prototype2/DiagramaArquitecturaP2.mermaid)
+
 ## Diagrama de Backend
 
 [Diagrama de clases Backend](https://github.com/mactiburon/tapatapp/blob/main/Prototype2/BackendP2.py)
