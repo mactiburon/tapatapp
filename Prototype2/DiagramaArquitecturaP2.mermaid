@@ -11,18 +11,18 @@ graph TD
     D -->|Responde| F
     F -->|Datos Niño| E
 
-    E --> H[HistorialTapat] -->|Datos Historial| I[LlistaHistorial]
+    E --> H[HistorialTapat] --> I[LlistaHistorial]
     I -->|Mostrar Historial| E
     I --> J[HistorialTapat: Fecha, Hora, Estado, TotalHoras]
 
-    subgraph Interfaz de Usuario
+    subgraph UI
         I1[ViewConsole]
         I1 -->|Muestra Menú| A
         I1 -->|Recibe Input| B
         I1 -->|Consulta Niño| E
     end
 
-    subgraph API Endpoints
+    subgraph API_Endpoints
         C1[POST /login]
         C2[POST /registro]
         C3[GET /children/{child_name}]
