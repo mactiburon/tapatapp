@@ -2,23 +2,11 @@ graph TD
     A[Usuario] -->|Interacción| B[UsuarioDAO]
     B -->|Llama a| C[API: /login]
     B -->|Llama a| D[API: /registro]
-    A -->|Interacción| E[ViewConsole]
-    E -->|Solicita entrada| B
+    E[ViewConsole] -->|Solicita entrada| B
     E -->|Muestra opciones| F[Opciones de Menú]
+    G[Nen] -->|Contiene| H[HistorialTapat]
+    H -->|Gestiona| I[LlistaHistorial]
     F -->|Opción 1: Login| B
     F -->|Opción 2: Registro| B
-    F -->|Opción 3: Ver Niño| G[Nen]
-    G -->|Contiene| H[HistorialTapat]
-    G -->|Usa| I[NenDAO]
-    H -->|Gestiona| J[LlistaHistorial]
-    G -->|Llama a| K[API: /children/{child_name}]
-    F -->|Opción 4: Salir| L[Salir]
-
-    %% Relaciones de clases adicionales
-    I -->|Obtiene datos de| K
-    J -->|Contiene| M[HistorialTapat]
-
-    %% Descripción de los servicios
-    C[API: /login] -->|Autenticación| N[Servidor]
-    D[API: /registro] -->|Creación de usuario| N[Servidor]
-    K[API: /children/{child_name}] -->|Datos del niño| N[Servidor]
+    F -->|Opción 3: Ver Niño| G
+    F -->|Opción 4: Salir| J[Salir]
