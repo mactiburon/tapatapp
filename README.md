@@ -113,7 +113,7 @@ Resposta:
 
 "message": "Parameters are valid.", 200
 
-## Prototip 2
+# Prototip 2
 
 ## Wireframes
 
