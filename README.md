@@ -155,9 +155,13 @@ Componentes del Proyecto
 ### Clases Principales:
 
 Usuario: Representa a los usuarios del sistema con sus atributos como nombre, apellido, email y contraseña.
+
 Nen: Representa a los niños, con datos como nombre, edad, fecha de nacimiento, información médica y su historial de sueño.
+
 UsuarioDAO: Contiene métodos para interactuar con el servidor y gestionar el login y registro de usuarios.
+
 NenDAO: Se encarga de obtener la información de los niños desde la base de datos del servidor.
+
 ViewConsole: Proporciona una interfaz de consola para interactuar con el usuario, permitiéndole ingresar datos y mostrar información.
 
 ### Interacción con el Servidor:
