@@ -11,7 +11,8 @@ graph TD
     D -->|Responde| F
     F -->|Datos Niño| E
 
-    E --> H[HistorialTapat] --> I[LlistaHistorial]
+    E --> H[HistorialTapat] 
+    H --> I[LlistaHistorial]
     I -->|Mostrar Historial| E
     I --> J[HistorialTapat: Fecha, Hora, Estado, TotalHoras]
 
@@ -37,7 +38,3 @@ graph TD
     I1 -->|Realiza Solicitudes API| C2
     I1 -->|Consulta Niño| C3
     I1 -->|Consulta Historial Niño| C4
-
-    B -->|Interacción con API| C
-    F -->|Interacción con API| G
-    J -->|Interacción con Historial| I
