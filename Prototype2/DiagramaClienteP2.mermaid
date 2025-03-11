@@ -1,43 +1,43 @@
 classDiagram
-    class User {
+    class Usuario {
         +int id
-        +string username
-        +string password
-        +string email
-        +__str__(): string
+        +str nombre
+        +str apellido
+        +str email
+        +str password
+        +__str__()
     }
 
-    class UserDAO {
-        +static string BASE_URL
-        +static get_user_by_username(username): User
-    }
-
-    class Child {
+    class Nen {
         +int id
-        +string child_name
-        +int sleep_average
-        +int treatment_id
-        +int time
-        +__str__(): string
+        +str child_name
+        +int edad
+        +date fecha_nacimiento
+        +str informacioMedica
+        +list historialTapat
+        +__str__()
     }
 
-    class ChildDAO {
-        +static string BASE_URL
-        +static get_child_by_name(child_name): Child
+    class UsuarioDAO {
+        +login(email: str, password: str) : dict
+        +registrar(nombre: str, apellido: str, email: str, password: str) : dict
+    }
+
+    class NenDAO {
+        +get_child_by_name(child_name: str) : Nen
     }
 
     class ViewConsole {
-        +static get_input(prompt): string
-        +static show_user_info(username): void
-        +static show_child_info(child_name): void
+        +get_input(prompt: str) : str
+        +show_child_info() : void
+        +get_input_login() : tuple
+        +get_input_registro() : tuple
+        +show_menu() : str
     }
 
-    class Main {
-        +main loop for user interaction
-    }
-
-    UserDAO --> User : "Fetches"
-    ChildDAO --> Child : "Fetches"
-    ViewConsole --> UserDAO : "Calls"
-    ViewConsole --> ChildDAO : "Calls"
-    Main --> ViewConsole : "Uses"
+    UsuarioDAO --> Usuario : interacts with
+    NenDAO --> Nen : interacts with
+    ViewConsole --> UsuarioDAO : uses
+    ViewConsole --> NenDAO : uses
+    ViewConsole --> Nen : displays information of
+    ViewConsole --> Usuario : displays information of
