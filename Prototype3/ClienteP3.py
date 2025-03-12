@@ -278,6 +278,36 @@ class MedicoDAO:
             print(f"Error de conexión: {e}")
             return None
 
+class CommentDAO:
+    @staticmethod
+    def add_comment(child_id, text):
+        try:
+            response = requests.post('http://localhost:5000/comentarios', json={
+                "child_id": child_id,
+                "text": text
+            })
+            if response.status_code == 201:
+                return response.json()
+            else:
+                print(f"Error: {response.status_code} - {response.json().get('error', 'Error desconocido')}")
+                return None
+        except requests.exceptions.RequestException as e:
+            print(f"Error de conexión: {e}")
+            return None
+
+    @staticmethod
+    def get_comments(child_id):
+        try:
+            response = requests.get(f'http://localhost:5000/comentarios/{child_id}')
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"Error: {response.status_code} - {response.json().get('error', 'Error desconocido')}")
+                return None
+        except requests.exceptions.RequestException as e:
+            print(f"Error de conexión: {e}")
+            return None
+
 class ViewConsole:
     @staticmethod
     def show_user_info():

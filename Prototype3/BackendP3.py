@@ -152,6 +152,45 @@ class Treatment:
             "name": self.name
         }
 
+comments = []
+
+class Comment:
+    def __init__(self, id, child_id, user_id, text, timestamp):
+        self.id = id
+        self.child_id = child_id
+        self.user_id = user_id
+        self.text = text
+        self.timestamp = timestamp
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "child_id": self.child_id,
+            "user_id": self.user_id,
+            "text": self.text,
+            "timestamp": self.timestamp.isoformat()
+        }
+
+@app.route('/comentarios', methods=['POST'])
+@jwt_required()
+def add_comment():
+    data = request.get_json()
+    new_comment = Comment(
+        id=len(comments) + 1,
+        child_id=data['child_id'],
+        user_id=get_jwt_identity(),
+        text=data['text'],
+        timestamp=datetime.now()
+    )
+    comments.append(new_comment)
+    return jsonify(new_comment.to_dict()), 201
+
+@app.route('/comentarios/<int:child_id>', methods=['GET'])
+@jwt_required()
+def get_comments(child_id):
+    child_comments = [comment.to_dict() for comment in comments if comment.child_id == child_id]
+    return jsonify(child_comments), 200
+
 # Datos de ejemplo
 users = [
     User(id=1, username="admin", password="admin123", email="admin@example.com", role_id=1),
