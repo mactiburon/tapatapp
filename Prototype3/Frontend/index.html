@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación Médica</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Bienvenido a la Aplicación Médica</h1>
+
+        <!-- Formulario de Login -->
+        <div id="login-form">
+            <h2>Iniciar Sesión</h2>
+            <input type="email" id="email" placeholder="Correo electrónico">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button onclick="login()">Iniciar Sesión</button>
+            <p id="login-message"></p>
+        </div>
+
+        <!-- Contenido después del login -->
+        <div id="content" style="display: none;">
+            <h2>Historial de Niños</h2>
+            <ul id="children-list"></ul>
+
+            <h2>Añadir Historial</h2>
+            <input type="text" id="child-name" placeholder="Nombre del niño">
+            <input type="date" id="historial-date">
+            <input type="time" id="historial-time">
+            <input type="text" id="historial-estat" placeholder="Estado">
+            <input type="number" id="historial-horas" placeholder="Total de horas">
+            <button onclick="addHistorial()">Añadir Historial</button>
+            <p id="historial-message"></p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
