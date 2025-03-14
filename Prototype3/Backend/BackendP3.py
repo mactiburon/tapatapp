@@ -4,14 +4,12 @@ from flask_jwt_extended import (
     JWTManager, create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 )
 from functools import wraps
-from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'super-secret'  # Cambia esto en un entorno de producción
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600  # 1 hora de expiración para el token de acceso
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = 86400  # 1 día de expiración para el token de refresco
 jwt = JWTManager(app)
-CORS(app)
 
 # Clases y métodos para serialización
 class User:
