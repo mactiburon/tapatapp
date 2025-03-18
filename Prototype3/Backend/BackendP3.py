@@ -554,10 +554,10 @@ def get_child(child_name):
     Returns:
         JSON: Información del niño.
     """
-    child = next((child for child in children if child.child_name == child_name), None)
+    child = next((child for child in children if child.child_name.lower() == child_name.lower()), None)
     if child:
         return jsonify(child.to_dict()), 200
-    return jsonify({"error": "Child not found"}), 404
+    return jsonify({"error": f"Child with name '{child_name}' not found"}), 404
 
 @app.route('/children', methods=['POST'])
 def create_child():
@@ -594,10 +594,11 @@ def get_tap(tap_id):
     Returns:
         JSON: Información del tap.
     """
+    # Buscar el tap por ID
     tap = next((tap for tap in taps if tap.id == tap_id), None)
     if tap:
         return jsonify(tap.to_dict()), 200
-    return jsonify({"error": "Tap not found"}), 404
+    return jsonify({"error": f"Tap with ID {tap_id} not found"}), 404
 
 @app.route('/taps', methods=['POST'])
 def create_tap():
@@ -634,10 +635,11 @@ def get_role(role_id):
     Returns:
         JSON: Información del rol.
     """
+    # Buscar el rol por ID
     role = next((role for role in roles if role.id == role_id), None)
     if role:
         return jsonify(role.to_dict()), 200
-    return jsonify({"error": "Role not found"}), 404
+    return jsonify({"error": f"Role with ID {role_id} not found"}), 404
 
 # Endpoints para Estados
 @app.route('/statuses', methods=['GET'])
@@ -755,7 +757,8 @@ def get_niños_medico():
     Returns:
         JSON: Lista de niños.
     """
-    # Suponemos que el médico tiene acceso a todos los niños
+    if not children:
+        return jsonify({"error": "No children found"}), 404
     return jsonify([child.to_dict() for child in children]), 200
 
 @app.route('/medico/niños/<int:child_id>/historial', methods=['GET'])
@@ -769,10 +772,14 @@ def get_historial_medico(child_id):
     Returns:
         JSON: Historial de sueño del niño.
     """
+    # Buscar el niño por ID
     child = next((child for child in children if child.id == child_id), None)
     if child:
+        # Validar si el historial está vacío
+        if not child.historialTapat.historial:
+            return jsonify({"error": f"No historial found for child with ID {child_id}"}), 404
         return jsonify(child.historialTapat.to_dict()), 200
-    return jsonify({"error": "Niño no encontrado"}), 404
+    return jsonify({"error": f"Child with ID {child_id} not found"}), 404
 
 # 3. Funcionalidades del Administrador
 @app.route('/admin/usuarios', methods=['GET'])
@@ -785,6 +792,8 @@ def get_usuarios_admin():
     Returns:
         JSON: Lista de usuarios.
     """
+    if not users:
+        return jsonify({"error": "No users found"}), 404
     return jsonify([user.to_dict() for user in users]), 200
 
 @app.route('/admin/usuarios/<int:user_id>', methods=['DELETE'])
@@ -849,6 +858,25 @@ def update_user_admin(user_id):
         return jsonify(user.to_dict()), 200
     return jsonify({"error": "Usuario no encontrado"}), 404
 
+@app.route('/admin/usuarios/<int:user_id>', methods=['GET'])
+@jwt_required()
+@role_required(1)  # Only Admin
+def get_usuario_admin(user_id):
+    """
+    Obtiene un usuario por su ID para el administrador.
+
+    Args:
+        user_id (int): Identificador del usuario.
+
+    Returns:
+        JSON: Información del usuario.
+    """
+    # Buscar el usuario por ID
+    user = next((user for user in users if user.id == user_id), None)
+    if user:
+        return jsonify(user.to_dict()), 200
+    return jsonify({"error": f"User with ID {user_id} not found"}), 404
+
 # Endpoint de Login
 @app.route('/login', methods=['POST'])
 def login():
@@ -862,13 +890,23 @@ def login():
     email = data.get('email', None)
     password = data.get('password', None)
 
+    # Validar que los datos requeridos estén presentes
+    if not email or not password:
+        return jsonify({"error": "Email y contraseña son obligatorios"}), 400
+
     # Buscar el usuario en la lista de usuarios
     user = next((user for user in users if user.email == email and user.password == password), None)
     if user:
         # Crear un token de acceso y un token de refresco
         access_token = create_access_token(identity=user.id)
         refresh_token = create_refresh_token(identity=user.id)
+        if not access_token or not refresh_token:
+            app.logger.error("Error: No se pudieron generar los tokens.")
+            return jsonify({"error": "Error interno del servidor"}), 500
         return jsonify(access_token=access_token, refresh_token=refresh_token, user=user.to_dict()), 200
+
+    # Si las credenciales no coinciden
+    app.logger.warning(f"Intento de inicio de sesión fallido para el email: {email}")
     return jsonify({"error": "Credenciales inválidas"}), 401
 
 @app.route('/refresh', methods=['POST'])

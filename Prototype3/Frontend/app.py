@@ -66,7 +66,22 @@ class UsuarioDAO:
 
     @staticmethod
     def login(email, password):
+        """
+        Inicia sesión en el sistema.
+
+        Args:
+            email (str): Correo electrónico del usuario.
+            password (str): Contraseña del usuario.
+
+        Returns:
+            dict: Información del usuario si el login es exitoso, None en caso contrario.
+        """
         try:
+            # Validar que los campos no estén vacíos
+            if not email or not password:
+                messagebox.showerror("Error", "El email y la contraseña son obligatorios.")
+                return None
+
             response = requests.post('http://localhost:5000/login', json={"email": email, "password": password})
             if response.status_code == 200:
                 data = response.json()
@@ -76,9 +91,13 @@ class UsuarioDAO:
                     LocalStorage.set_item('user', json.dumps(data['user']))
                     messagebox.showinfo("Login Exitoso", "Token y usuario guardados.")
                     return data['user']
+            elif response.status_code == 401:
+                messagebox.showerror("Error", "Credenciales inválidas. Verifique su email y contraseña.")
+            elif response.status_code == 400:
+                messagebox.showerror("Error", "El email y la contraseña son obligatorios.")
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
+                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
+            return None
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Error de Conexión", str(e))
             return None
@@ -117,6 +136,15 @@ class UsuarioDAO:
 class NenDAO:
     @staticmethod
     def get_child_by_name(child_name):
+        """
+        Obtiene un niño por su nombre.
+
+        Args:
+            child_name (str): Nombre del niño.
+
+        Returns:
+            Nen: Objeto con la información del niño o None si no se encuentra.
+        """
         try:
             token = LocalStorage.get_item('access_token')
             if not token:
@@ -135,35 +163,62 @@ class NenDAO:
                     informacioMedica=child_data.get('informacioMedica'),
                     historialTapat=child_data.get('historialTapat')
                 )
+            elif response.status_code == 404:
+                messagebox.showerror("Error", f"Niño con nombre '{child_name}' no encontrado.")
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
+                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
+            return None
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Error de Conexión", str(e))
             return None
 
     @staticmethod
     def get_all_children():
+        """
+        Obtiene la lista de todos los niños.
+
+        Returns:
+            list: Lista de niños o None si ocurre un error.
+        """
         try:
             response = requests.get('http://localhost:5000/medico/niños')
             if response.status_code == 200:
                 return response.json()
+            elif response.status_code == 404:
+                messagebox.showerror("Error", "No se encontraron niños.")
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
+                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
+            return None
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Error de Conexión", str(e))
             return None
 
     @staticmethod
     def get_child_historial(child_id):
+        """
+        Obtiene el historial de sueño de un niño.
+
+        Args:
+            child_id (int): Identificador del niño.
+
+        Returns:
+            list: Historial del niño o None si ocurre un error.
+        """
         try:
-            response = requests.get(f'http://localhost:5000/medico/niños/{child_id}/historial')
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                messagebox.showerror("Error", "No hay token de acceso. Inicie sesión primero.")
+                return None
+
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(f'http://localhost:5000/medico/niños/{child_id}/historial', headers=headers)
             if response.status_code == 200:
                 return response.json()
+            elif response.status_code == 404:
+                messagebox.showerror("Error", f"No se encontró historial para el niño con ID {child_id}.")
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
+                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
+            return None
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Error de Conexión", str(e))
             return None
@@ -171,13 +226,21 @@ class NenDAO:
 class AdminDAO:
     @staticmethod
     def get_all_users():
+        """
+        Obtiene la lista de todos los usuarios.
+
+        Returns:
+            list: Lista de usuarios o None si ocurre un error.
+        """
         try:
             response = requests.get('http://localhost:5000/admin/usuarios')
             if response.status_code == 200:
                 return response.json()
+            elif response.status_code == 404:
+                messagebox.showerror("Error", "No se encontraron usuarios.")
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
+                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
+            return None
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Error de Conexión", str(e))
             return None
@@ -244,6 +307,36 @@ class AdminDAO:
             else:
                 messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
                 return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de Conexión", str(e))
+            return None
+
+    @staticmethod
+    def get_user_by_id(user_id):
+        """
+        Obtiene un usuario por su ID.
+
+        Args:
+            user_id (int): Identificador del usuario.
+
+        Returns:
+            dict: Información del usuario o None si ocurre un error.
+        """
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                messagebox.showerror("Error", "No hay token de acceso. Inicie sesión primero.")
+                return None
+
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(f'http://localhost:5000/admin/usuarios/{user_id}', headers=headers)
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                messagebox.showerror("Error", f"Usuario con ID {user_id} no encontrado.")
+            else:
+                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
+            return None
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Error de Conexión", str(e))
             return None

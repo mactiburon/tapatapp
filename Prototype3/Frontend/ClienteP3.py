@@ -112,7 +112,11 @@ class UsuarioDAO:
                     LocalStorage.set_item('access_token', data['access_token'])
                     LocalStorage.set_item('refresh_token', data['refresh_token'])
                     LocalStorage.set_item('user', json.dumps(data['user']))
-                    print("Login exitoso. Token y usuario guardados.")
+                    # Verificar si los tokens se guardaron correctamente
+                    if not LocalStorage.get_item('access_token') or not LocalStorage.get_item('refresh_token'):
+                        print("Error: Los tokens no se guardaron correctamente en LocalStorage.")
+                    else:
+                        print("Login exitoso. Token y usuario guardados.")
                     return data['user']
             else:
                 print(f"Error: {response.status_code} - {response.json().get('error', 'Error desconocido')}")
