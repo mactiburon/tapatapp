@@ -1,1174 +1,2117 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk, messagebox
 import json
 import requests
+from datetime import datetime
 
-# Simulación de localStorage en Python
+# Configuración de estilos
+def configure_styles():
+    style = ttk.Style()
+    style.configure('TFrame', background='#f0f0f0')
+    style.configure('TLabel', background='#f0f0f0', font=('Arial', 10))
+    style.configure('TButton', font=('Arial', 10), padding=5)
+    style.configure('TEntry', font=('Arial', 10))
+    style.configure('Header.TLabel', font=('Arial', 12, 'bold'))
+    style.configure('Title.TLabel', font=('Arial', 16, 'bold'))
+    style.configure('TNotebook', background='#f0f0f0')
+    style.configure('TNotebook.Tab', padding=[10, 5])
+    style.map('TButton', 
+              foreground=[('active', 'black'), ('!active', 'black')],
+              background=[('active', '#d9d9d9'), ('!active', '#f0f0f0')])
+
+# Simulación de localStorage
 class LocalStorage:
     storage = {}
-
+    
     @staticmethod
     def set_item(key, value):
         LocalStorage.storage[key] = value
-
+        
     @staticmethod
     def get_item(key):
         return LocalStorage.storage.get(key, None)
-
+        
     @staticmethod
     def remove_item(key):
         if key in LocalStorage.storage:
             del LocalStorage.storage[key]
 
-# Clases de dominio
-class Usuario:
-    def __init__(self, id, nombre, apellido, email, password):
-        self.id = id
-        self.nombre = nombre
-        self.apellido = apellido
-        self.email = email
-        self.password = password
-
-    def __str__(self):
-        return f"Nombre: {self.nombre} {self.apellido}, Email: {self.email}"
-
-class Nen:
-    def __init__(self, id, child_name, edad=None, fecha_nacimiento=None, informacioMedica=None, historialTapat=None):
-        self.id = id
-        self.child_name = child_name
-        self.edad = edad
-        self.fecha_nacimiento = fecha_nacimiento
-        self.informacioMedica = informacioMedica
-        self.historialTapat = historialTapat
-
-    def __str__(self):
-        info = f"Nombre: {self.child_name}"
-        if self.edad:
-            info += f", Edad: {self.edad}"
-        if self.fecha_nacimiento:
-            info += f", Fecha de Nacimiento: {self.fecha_nacimiento}"
-        if self.informacioMedica:
-            info += f", Información Médica: {self.informacioMedica}"
-        if self.historialTapat:
-            info += "\nHistorial de sueño:"
-            for hist in self.historialTapat:
-                info += f"\n- Fecha: {hist.get('data')}, Hora: {hist.get('hora')}, Estado: {hist.get('estat')}, Total horas: {hist.get('totalHores')}"
-        return info
-
-# DAOs (Data Access Objects)
-class UsuarioDAO:
+# Clases DAO (Data Access Object)
+class AuthDAO:
+    BASE_URL = "http://localhost:5000"
+    
+    @staticmethod
+    def login(email, password):
+        try:
+            response = requests.post(
+                f"{AuthDAO.BASE_URL}/login",
+                json={"email": email, "password": password}
+            )
+            if response.status_code == 200:
+                data = response.json()
+                LocalStorage.set_item('access_token', data['access_token'])
+                LocalStorage.set_item('refresh_token', data['refresh_token'])
+                LocalStorage.set_item('user', json.dumps(data['user']))
+                return data['user']
+            else:
+                messagebox.showerror("Error", response.json().get('error', 'Error en el login'))
+                return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
     @staticmethod
     def logout():
         LocalStorage.remove_item('access_token')
         LocalStorage.remove_item('refresh_token')
         LocalStorage.remove_item('user')
-        messagebox.showinfo("Logout", "Sesión cerrada. Token y usuario eliminados.")
-
+    
     @staticmethod
-    def login(email, password):
-        """
-        Inicia sesión en el sistema.
-
-        Args:
-            email (str): Correo electrónico del usuario.
-            password (str): Contraseña del usuario.
-
-        Returns:
-            dict: Información del usuario si el login es exitoso, None en caso contrario.
-        """
-        try:
-            # Validar que los campos no estén vacíos
-            if not email or not password:
-                messagebox.showerror("Error", "El email y la contraseña son obligatorios.")
-                return None
-
-            response = requests.post('http://localhost:5000/login', json={"email": email, "password": password})
-            if response.status_code == 200:
-                data = response.json()
-                if 'access_token' in data and 'refresh_token' in data and 'user' in data:
-                    LocalStorage.set_item('access_token', data['access_token'])
-                    LocalStorage.set_item('refresh_token', data['refresh_token'])
-                    LocalStorage.set_item('user', json.dumps(data['user']))
-                    messagebox.showinfo("Login Exitoso", "Token y usuario guardados.")
-                    return data['user']
-            elif response.status_code == 401:
-                messagebox.showerror("Error", "Credenciales inválidas. Verifique su email y contraseña.")
-            elif response.status_code == 400:
-                messagebox.showerror("Error", "El email y la contraseña son obligatorios.")
-            else:
-                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
-            return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
+    def get_current_user():
+        user_data = LocalStorage.get_item('user')
+        if user_data:
+            return json.loads(user_data)
+        return None
+    
     @staticmethod
-    def registrar(nombre, apellido, email, password):
+    def recover_password(email):
         try:
-            response = requests.post('http://localhost:5000/registro', json={
-                "nombre": nombre,
-                "apellido": apellido,
-                "email": email,
-                "password": password
-            })
-            if response.status_code == 201:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-    @staticmethod
-    def recuperar_contrasena(email):
-        try:
-            response = requests.post('http://localhost:5000/recuperar-contrasena', json={"email": email})
+            response = requests.post(
+                f"{AuthDAO.BASE_URL}/recuperar-contrasena",
+                json={"email": email}
+            )
             if response.status_code == 200:
                 return response.json()
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
+                messagebox.showerror("Error", response.json().get('error', 'Error al recuperar contraseña'))
                 return None
         except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+            messagebox.showerror("Error de conexión", str(e))
             return None
 
-class NenDAO:
-    @staticmethod
-    def get_child_by_name(child_name):
-        """
-        Obtiene un niño por su nombre.
-
-        Args:
-            child_name (str): Nombre del niño.
-
-        Returns:
-            Nen: Objeto con la información del niño o None si no se encuentra.
-        """
-        try:
-            token = LocalStorage.get_item('access_token')
-            if not token:
-                messagebox.showerror("Error", "No hay token de acceso. Inicie sesión primero.")
-                return None
-
-            headers = {"Authorization": f"Bearer {token}"}
-            response = requests.get(f'http://localhost:5000/children/{child_name}', headers=headers)
-            if response.status_code == 200:
-                child_data = response.json()
-                return Nen(
-                    id=child_data.get('id'),
-                    child_name=child_data.get('child_name'),
-                    edad=child_data.get('edad'),
-                    fecha_nacimiento=child_data.get('fecha_nacimiento'),
-                    informacioMedica=child_data.get('informacioMedica'),
-                    historialTapat=child_data.get('historialTapat')
-                )
-            elif response.status_code == 404:
-                messagebox.showerror("Error", f"Niño con nombre '{child_name}' no encontrado.")
-            else:
-                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
-            return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
+class ChildDAO:
+    BASE_URL = "http://localhost:5000"
+    
     @staticmethod
     def get_all_children():
-        """
-        Obtiene la lista de todos los niños.
-
-        Returns:
-            list: Lista de niños o None si ocurre un error.
-        """
         try:
-            response = requests.get('http://localhost:5000/medico/niños')
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(
+                f"{ChildDAO.BASE_URL}/children",
+                headers=headers
+            )
+            
             if response.status_code == 200:
                 return response.json()
-            elif response.status_code == 404:
-                messagebox.showerror("Error", "No se encontraron niños.")
             else:
-                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
+                messagebox.showerror("Error", f"Error al obtener niños: {response.text}")
             return None
         except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+            messagebox.showerror("Error de conexión", str(e))
             return None
-
+    
+    @staticmethod
+    def get_child_by_id(child_id):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(
+                f"{ChildDAO.BASE_URL}/child/{child_id}",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al obtener niño: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def get_child_by_name(name):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(
+                f"{ChildDAO.BASE_URL}/children/{name}",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al buscar niño: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
     @staticmethod
     def get_child_historial(child_id):
-        """
-        Obtiene el historial de sueño de un niño.
-
-        Args:
-            child_id (int): Identificador del niño.
-
-        Returns:
-            list: Historial del niño o None si ocurre un error.
-        """
         try:
             token = LocalStorage.get_item('access_token')
             if not token:
-                messagebox.showerror("Error", "No hay token de acceso. Inicie sesión primero.")
                 return None
-
+                
             headers = {"Authorization": f"Bearer {token}"}
-            response = requests.get(f'http://localhost:5000/medico/niños/{child_id}/historial', headers=headers)
+            response = requests.get(
+                f"{ChildDAO.BASE_URL}/historial/{child_id}",
+                headers=headers
+            )
+            
             if response.status_code == 200:
                 return response.json()
-            elif response.status_code == 404:
-                messagebox.showerror("Error", f"No se encontró historial para el niño con ID {child_id}.")
             else:
-                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
+                messagebox.showerror("Error", f"Error al obtener historial: {response.text}")
             return None
         except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def add_historial(child_id, data, hora, estat, totalHores):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.post(
+                f"{ChildDAO.BASE_URL}/medicos/historial",
+                json={
+                    "child_id": child_id,
+                    "data": data,
+                    "hora": hora,
+                    "estat": estat,
+                    "totalHores": totalHores
+                },
+                headers=headers
+            )
+            
+            if response.status_code == 201:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al agregar historial: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def add_child(name, edad, informacion_medica, tutor_id=None, cuidador_id=None):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.post(
+                f"{ChildDAO.BASE_URL}/children",
+                json={
+                    "child_name": name,
+                    "edad": edad,
+                    "informacioMedica": informacion_medica,
+                    "tutor_id": tutor_id,
+                    "cuidador_id": cuidador_id
+                },
+                headers=headers
+            )
+            
+            if response.status_code == 201:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al agregar niño: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def update_child(child_id, name, edad, informacion_medica, tutor_id=None, cuidador_id=None):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.put(
+                f"{ChildDAO.BASE_URL}/children/{child_id}",
+                json={
+                    "child_name": name,
+                    "edad": edad,
+                    "informacioMedica": informacion_medica,
+                    "tutor_id": tutor_id,
+                    "cuidador_id": cuidador_id
+                },
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al actualizar niño: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def delete_child(child_id):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.delete(
+                f"{ChildDAO.BASE_URL}/children/{child_id}",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al eliminar niño: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def get_children_by_tutor(tutor_id):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(
+                f"{ChildDAO.BASE_URL}/tutor/{tutor_id}/children",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al obtener niños del tutor: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def get_children_by_cuidador(cuidador_id):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(
+                f"{ChildDAO.BASE_URL}/cuidador/{cuidador_id}/children",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al obtener niños del cuidador: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
             return None
 
-class AdminDAO:
+class UserDAO:
+    BASE_URL = "http://localhost:5000"
+    
     @staticmethod
     def get_all_users():
-        """
-        Obtiene la lista de todos los usuarios.
-
-        Returns:
-            list: Lista de usuarios o None si ocurre un error.
-        """
-        try:
-            response = requests.get('http://localhost:5000/admin/usuarios')
-            if response.status_code == 200:
-                return response.json()
-            elif response.status_code == 404:
-                messagebox.showerror("Error", "No se encontraron usuarios.")
-            else:
-                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
-            return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-    @staticmethod
-    def delete_user(user_id):
-        try:
-            response = requests.delete(f'http://localhost:5000/admin/usuarios/{user_id}')
-            if response.status_code == 200:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-    @staticmethod
-    def create_user(nombre, email, password, role_id):
-        try:
-            response = requests.post('http://localhost:5000/admin/usuarios', json={
-                "username": nombre,
-                "password": password,
-                "email": email,
-                "role_id": role_id
-            })
-            if response.status_code == 201:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-    @staticmethod
-    def update_user(user_id, username, password, email, role_id):
-        try:
-            response = requests.put(f'http://localhost:5000/admin/usuarios/{user_id}', json={
-                "username": username,
-                "password": password,
-                "email": email,
-                "role_id": role_id
-            })
-            if response.status_code == 200:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-    @staticmethod
-    def create_cuidador(username, password, email):
-        try:
-            response = requests.post('http://localhost:5000/admin/cuidadores', json={
-                "username": username,
-                "password": password,
-                "email": email
-            })
-            if response.status_code == 201:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-    @staticmethod
-    def get_user_by_id(user_id):
-        """
-        Obtiene un usuario por su ID.
-
-        Args:
-            user_id (int): Identificador del usuario.
-
-        Returns:
-            dict: Información del usuario o None si ocurre un error.
-        """
         try:
             token = LocalStorage.get_item('access_token')
             if not token:
-                messagebox.showerror("Error", "No hay token de acceso. Inicie sesión primero.")
                 return None
-
+                
             headers = {"Authorization": f"Bearer {token}"}
-            response = requests.get(f'http://localhost:5000/admin/usuarios/{user_id}', headers=headers)
+            response = requests.get(
+                f"{UserDAO.BASE_URL}/admin/usuarios",
+                headers=headers
+            )
+            
             if response.status_code == 200:
                 return response.json()
-            elif response.status_code == 404:
-                messagebox.showerror("Error", f"Usuario con ID {user_id} no encontrado.")
             else:
-                messagebox.showerror("Error", f"Error inesperado: {response.status_code}")
+                messagebox.showerror("Error", f"Error al obtener usuarios: {response.text}")
             return None
         except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+            messagebox.showerror("Error de conexión", str(e))
             return None
-
-class MedicoDAO:
+    
     @staticmethod
     def get_cuidadores():
         try:
-            response = requests.get('http://localhost:5000/medico/cuidadores')
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(
+                f"{UserDAO.BASE_URL}/medico/cuidadores",
+                headers=headers
+            )
+            
             if response.status_code == 200:
                 return response.json()
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+                messagebox.showerror("Error", f"Error al obtener cuidadores: {response.text}")
             return None
-
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
     @staticmethod
-    def add_cuidador(username, password, email):
+    def get_tutores():
         try:
-            response = requests.post('http://localhost:5000/medico/cuidadores', json={
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(
+                f"{UserDAO.BASE_URL}/admin/tutores",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al obtener tutores: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def get_user_profile(user_id):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(
+                f"{UserDAO.BASE_URL}/user/{user_id}",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al obtener perfil: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def create_user(username, email, password, role_id):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.post(
+                f"{UserDAO.BASE_URL}/admin/usuarios",
+                json={
+                    "username": username,
+                    "email": email,
+                    "password": password,
+                    "role_id": role_id
+                },
+                headers=headers
+            )
+            
+            if response.status_code == 201:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al crear usuario: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def create_cuidador(username, email, password):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.post(
+                f"{UserDAO.BASE_URL}/admin/cuidadores",
+                json={
+                    "username": username,
+                    "email": email,
+                    "password": password
+                },
+                headers=headers
+            )
+            
+            if response.status_code == 201:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al crear cuidador: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def create_tutor(username, email, password):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.post(
+                f"{UserDAO.BASE_URL}/admin/tutores",
+                json={
+                    "username": username,
+                    "email": email,
+                    "password": password
+                },
+                headers=headers
+            )
+            
+            if response.status_code == 201:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al crear tutor: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def update_user(user_id, username, email, password=None):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            
+            data = {
                 "username": username,
-                "password": password,
                 "email": email
-            })
-            if response.status_code == 201:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-    @staticmethod
-    def delete_cuidador(user_id):
-        try:
-            response = requests.delete(f'http://localhost:5000/medico/cuidadores/{user_id}')
+            }
+            
+            if password:
+                data["password"] = password
+                
+            response = requests.put(
+                f"{UserDAO.BASE_URL}/admin/usuarios/{user_id}",
+                json=data,
+                headers=headers
+            )
+            
             if response.status_code == 200:
                 return response.json()
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+                messagebox.showerror("Error", f"Error al actualizar usuario: {response.text}")
             return None
-
-class SearchDAO:
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
     @staticmethod
-    def search(query):
+    def delete_user(user_id):
         try:
-            response = requests.get(f'http://localhost:5000/search?query={query}')
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.delete(
+                f"{UserDAO.BASE_URL}/admin/usuarios/{user_id}",
+                headers=headers
+            )
+            
             if response.status_code == 200:
                 return response.json()
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+                messagebox.showerror("Error", f"Error al eliminar usuario: {response.text}")
             return None
-
-class TapDAO:
-    @staticmethod
-    def add_tap_tutor(child_id, status_id, init, end):
-        try:
-            response = requests.post('http://localhost:5000/tutores/taps', json={
-                "child_id": child_id,
-                "status_id": status_id,
-                "init": init,
-                "end": end
-            })
-            if response.status_code == 201:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
         except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-    @staticmethod
-    def add_tap_medico(child_id, status_id, init, end):
-        try:
-            response = requests.post('http://localhost:5000/medicos/taps', json={
-                "child_id": child_id,
-                "status_id": status_id,
-                "init": init,
-                "end": end
-            })
-            if response.status_code == 201:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-class HistorialDAO:
-    @staticmethod
-    def add_historial_tutor(child_id, data, hora, estat, totalHores):
-        try:
-            response = requests.post('http://localhost:5000/tutores/historial', json={
-                "child_id": child_id,
-                "data": data,
-                "hora": hora,
-                "estat": estat,
-                "totalHores": totalHores
-            })
-            if response.status_code == 201:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
-            return None
-
-    @staticmethod
-    def add_historial_medico(child_id, data, hora, estat, totalHores):
-        try:
-            response = requests.post('http://localhost:5000/medicos/historial', json={
-                "child_id": child_id,
-                "data": data,
-                "hora": hora,
-                "estat": estat,
-                "totalHores": totalHores
-            })
-            if response.status_code == 201:
-                return response.json()
-            else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+            messagebox.showerror("Error de conexión", str(e))
             return None
 
 class CommentDAO:
+    BASE_URL = "http://localhost:5000"
+    
     @staticmethod
-    def edit_comment(comment_id, text):
+    def get_comments(child_id):
         try:
-            response = requests.put(f'http://localhost:5000/comentarios/{comment_id}', json={"text": text})
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.get(
+                f"{CommentDAO.BASE_URL}/comentarios/{child_id}",
+                headers=headers
+            )
+            
             if response.status_code == 200:
                 return response.json()
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
-        except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+                messagebox.showerror("Error", f"Error al obtener comentarios: {response.text}")
             return None
-
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
+    @staticmethod
+    def add_comment(child_id, text):
+        try:
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.post(
+                f"{CommentDAO.BASE_URL}/comentarios",
+                json={
+                    "child_id": child_id,
+                    "text": text
+                },
+                headers=headers
+            )
+            
+            if response.status_code == 201:
+                return response.json()
+            else:
+                messagebox.showerror("Error", f"Error al agregar comentario: {response.text}")
+            return None
+        except requests.exceptions.RequestException as e:
+            messagebox.showerror("Error de conexión", str(e))
+            return None
+    
     @staticmethod
     def delete_comment(comment_id):
         try:
-            response = requests.delete(f'http://localhost:5000/comentarios/{comment_id}')
+            token = LocalStorage.get_item('access_token')
+            if not token:
+                return None
+                
+            headers = {"Authorization": f"Bearer {token}"}
+            response = requests.delete(
+                f"{CommentDAO.BASE_URL}/comentarios/{comment_id}",
+                headers=headers
+            )
+            
             if response.status_code == 200:
                 return response.json()
             else:
-                messagebox.showerror("Error", f"{response.status_code} - {response.json().get('error', 'Error desconocido')}")
-                return None
+                messagebox.showerror("Error", f"Error al eliminar comentario: {response.text}")
+            return None
         except requests.exceptions.RequestException as e:
-            messagebox.showerror("Error de Conexión", str(e))
+            messagebox.showerror("Error de conexión", str(e))
             return None
 
-# Interfaz Gráfica
-class App:
+# Interfaz gráfica principal
+class MainApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Aplicación Médica")
-        self.root.geometry("600x400")
-
-        self.create_main_menu()
-
-    def create_main_menu(self):
-        """Crea el menú principal de la aplicación."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Menú Principal", font=("Arial", 16)).pack(pady=10)
-
-        buttons = [
-            ("Login", self.open_login_window),
-            ("Registro", self.open_registro_window),
-            ("Ver información del niño", self.open_child_info_window),
-            ("Recuperar Contraseña", self.open_recuperar_contrasena_window),
-            ("Ver niños (Médico)", self.open_show_all_children_window),
-            ("Ver historial de un niño (Médico)", self.open_show_child_historial_window),
-            ("Ver usuarios (Admin)", self.open_show_all_users_window),
-            ("Eliminar usuario (Admin)", self.open_delete_user_window),
-            ("Crear usuario (Admin)", self.open_create_user_window),
-            ("Modificar usuario (Admin)", self.open_update_user_window),
-            ("Crear cuidador (Admin)", self.open_create_cuidador_window),
-            ("Ver cuidadores (Médico)", self.open_show_cuidadores_window),
-            ("Añadir cuidador (Médico)", self.open_add_cuidador_window),
-            ("Eliminar cuidador (Médico)", self.open_delete_cuidador_window),
-            ("Ver información del usuario", self.show_user_info),
-            ("Cerrar sesión", UsuarioDAO.logout),
-            ("Buscar", self.open_search_window),
-            ("Añadir tap (Tutor)", self.open_add_tap_tutor_window),
-            ("Añadir tap (Médico)", self.open_add_tap_medico_window),
-            ("Añadir historial (Tutor)", self.open_add_historial_tutor_window),
-            ("Añadir historial (Médico)", self.open_add_historial_medico_window),
-            ("Editar comentario", self.open_edit_comment_window),
-            ("Eliminar comentario", self.open_delete_comment_window),
-            ("Salir", self.root.quit)
-        ]
-
-        for text, command in buttons:
-            tk.Button(self.root, text=text, command=command).pack(pady=5)
-
-    def clear_window(self):
-        """Limpia la ventana actual."""
-        for widget in self.root.winfo_children():
+        self.root.title("TapatApp - Gestión de Sueño Infantil")
+        self.root.geometry("1000x700")
+        self.root.minsize(800, 600)
+        
+        configure_styles()
+        
+        self.main_frame = ttk.Frame(self.root)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Verificar si hay un solo niño para redirigir directamente
+        current_user = AuthDAO.get_current_user()
+        if current_user and current_user['role_id'] == 3:  # Tutor
+            children = ChildDAO.get_children_by_tutor(current_user['id'])
+            if children and len(children) == 1:
+                self.show_child_details(children[0]['id'])
+                return
+        elif current_user and current_user['role_id'] == 4:  # Cuidador
+            children = ChildDAO.get_children_by_cuidador(current_user['id'])
+            if children and len(children) == 1:
+                self.show_child_details(children[0]['id'])
+                return
+        
+        # Mostrar menú principal si no es tutor/cuidador con un solo niño
+        self.show_main_menu()
+    
+    def clear_frame(self):
+        for widget in self.main_frame.winfo_children():
             widget.destroy()
+    
+    def show_main_menu(self):
+        self.clear_frame()
+        
+        current_user = AuthDAO.get_current_user()
+        
+        # Header
+        header_frame = ttk.Frame(self.main_frame)
+        header_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Label(
+            header_frame, 
+            text="TapatApp - Gestión de Sueño Infantil", 
+            style="Title.TLabel"
+        ).pack(side=tk.LEFT)
+        
+        if current_user:
+            user_frame = ttk.Frame(header_frame)
+            user_frame.pack(side=tk.RIGHT)
+            
+            ttk.Label(
+                user_frame, 
+                text=f"Usuario: {current_user['username']} (Rol: {self.get_role_name(current_user['role_id'])})",
+                style="Header.TLabel"
+            ).pack(side=tk.LEFT)
+            
+            ttk.Button(
+                user_frame, 
+                text="Mi Perfil", 
+                command=self.show_user_profile
+            ).pack(side=tk.LEFT, padx=5)
+            
+            ttk.Button(
+                user_frame, 
+                text="Cerrar Sesión", 
+                command=self.logout
+            ).pack(side=tk.LEFT, padx=5)
+        
+        # Main content
+        content_frame = ttk.Frame(self.main_frame)
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Buttons for different functionalities
+        buttons = []
+        
+        current_user = AuthDAO.get_current_user()
+        if current_user:
+            # Todos pueden ver niños (pero tutores solo ven los suyos)
+            buttons.append(("Gestión de Niños", self.show_children_management))
+            
+            # Solo admin puede ver gestión de usuarios
+            if current_user['role_id'] == 1:  # Admin
+                buttons.append(("Gestión de Usuarios", self.show_user_management))
+            
+            # Médicos y admin pueden ver historial
+            if current_user['role_id'] in [1, 2]:  # Admin o Médico
+                buttons.append(("Registrar Historial", self.show_add_historial))
+            
+            buttons.append(("Configuración", self.show_settings))
+        
+        for i, (text, command) in enumerate(buttons):
+            btn = ttk.Button(
+                content_frame,
+                text=text,
+                command=command,
+                width=30
+            )
+            btn.grid(row=i//2, column=i%2, padx=10, pady=10, sticky="nsew")
+        
+        # Configure grid
+        content_frame.grid_columnconfigure(0, weight=1)
+        content_frame.grid_columnconfigure(1, weight=1)
+        for i in range((len(buttons)+1)//2):
+            content_frame.grid_rowconfigure(i, weight=1)
+    
+    def get_role_name(self, role_id):
+        roles = {
+            1: "Admin",
+            2: "Médico",
+            3: "Tutor",
+            4: "Cuidador"
+        }
+        return roles.get(role_id, "Desconocido")
+    
+    def show_user_profile(self):
+        current_user = AuthDAO.get_current_user()
+        if not current_user:
+            return
+        
+        # Usar los datos ya almacenados en localStorage
+        user_data = current_user
+        
+        profile_window = tk.Toplevel(self.root)
+        profile_window.title("Mi Perfil")
+        profile_window.geometry("400x300")
+        
+        ttk.Label(
+            profile_window,
+            text="Mi Perfil",
+            style="Title.TLabel"
+        ).pack(pady=10)
+        
+        form_frame = ttk.Frame(profile_window)
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Campos del formulario
+        ttk.Label(form_frame, text="Nombre de usuario:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.E)
+        username_entry = ttk.Entry(form_frame)
+        username_entry.grid(row=0, column=1, padx=5, pady=5)
+        username_entry.insert(0, user_data['username'])
+        
+        ttk.Label(form_frame, text="Email:").grid(row=1, column=0, padx=5, pady=5, sticky=tk.E)
+        email_entry = ttk.Entry(form_frame)
+        email_entry.grid(row=1, column=1, padx=5, pady=5)
+        email_entry.insert(0, user_data['email'])
+        
+        ttk.Label(form_frame, text="Nueva contraseña:").grid(row=2, column=0, padx=5, pady=5, sticky=tk.E)
+        password_entry = ttk.Entry(form_frame, show="*")
+        password_entry.grid(row=2, column=1, padx=5, pady=5)
+        
+        ttk.Label(form_frame, text="Rol:").grid(row=3, column=0, padx=5, pady=5, sticky=tk.E)
+        ttk.Label(form_frame, text=self.get_role_name(user_data['role_id'])).grid(row=3, column=1, padx=5, pady=5, sticky=tk.W)
+        
+        # Botones
+        button_frame = ttk.Frame(form_frame)
+        button_frame.grid(row=4, column=0, columnspan=2, pady=10)
+        
+        ttk.Button(
+            button_frame,
+            text="Guardar Cambios",
+            command=lambda: self.update_profile(
+                user_data['id'],
+                username_entry.get(),
+                email_entry.get(),
+                password_entry.get(),
+                profile_window
+            )
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            button_frame,
+            text="Cancelar",
+            command=profile_window.destroy
+        ).pack(side=tk.LEFT, padx=5)
+    
+    def update_profile(self, user_id, username, email, password, window):
+        if not username or not email:
+            messagebox.showwarning("Advertencia", "Nombre de usuario y email son obligatorios")
+            return
+        
+        result = UserDAO.update_user(user_id, username, email, password if password else None)
+        if result:
+            messagebox.showinfo("Éxito", "Perfil actualizado correctamente")
+            # Actualizar datos en localStorage
+            current_user = AuthDAO.get_current_user()
+            if current_user:
+                current_user['username'] = username
+                current_user['email'] = email
+                LocalStorage.set_item('user', json.dumps(current_user))
+            window.destroy()
+            self.show_main_menu()
+        else:
+            messagebox.showerror("Error", "No se pudo actualizar el perfil")
+    
+    def logout(self):
+        AuthDAO.logout()
+        self.root.destroy()
+        show_login_window()
+    
+    def show_children_management(self):
+        self.clear_frame()
+        
+        # Header
+        header_frame = ttk.Frame(self.main_frame)
+        header_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Label(
+            header_frame, 
+            text="Gestión de Niños", 
+            style="Title.TLabel"
+        ).pack(side=tk.LEFT)
+        
+        ttk.Button(
+            header_frame, 
+            text="Volver", 
+            command=self.show_main_menu
+        ).pack(side=tk.RIGHT)
+        
+        # Search frame
+        search_frame = ttk.Frame(self.main_frame)
+        search_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Label(search_frame, text="Buscar niño:").pack(side=tk.LEFT)
+        self.child_search_entry = ttk.Entry(search_frame, width=30)
+        self.child_search_entry.pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            search_frame,
+            text="Buscar",
+            command=self.search_child
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            search_frame,
+            text="Mostrar Todos",
+            command=self.show_all_children
+        ).pack(side=tk.LEFT, padx=5)
+        
+        # Children list
+        list_frame = ttk.Frame(self.main_frame)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        columns = ("id", "name", "age", "medical_info", "tutor", "cuidador")
+        self.children_tree = ttk.Treeview(
+            list_frame,
+            columns=columns,
+            show="headings"
+        )
+        
+        self.children_tree.heading("id", text="ID")
+        self.children_tree.heading("name", text="Nombre")
+        self.children_tree.heading("age", text="Edad")
+        self.children_tree.heading("medical_info", text="Información Médica")
+        self.children_tree.heading("tutor", text="Tutor")
+        self.children_tree.heading("cuidador", text="Cuidador")
+        
+        self.children_tree.column("id", width=50, anchor=tk.CENTER)
+        self.children_tree.column("name", width=150)
+        self.children_tree.column("age", width=50, anchor=tk.CENTER)
+        self.children_tree.column("medical_info", width=200)
+        self.children_tree.column("tutor", width=150)
+        self.children_tree.column("cuidador", width=150)
+        
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.children_tree.yview)
+        self.children_tree.configure(yscroll=scrollbar.set)
+        
+        self.children_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Action buttons
+        action_frame = ttk.Frame(self.main_frame)
+        action_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Button(
+            action_frame,
+            text="Ver Detalles",
+            command=self.show_selected_child_details
+        ).pack(side=tk.LEFT, padx=5)
+        
+        # Solo admin puede agregar/editar/eliminar niños
+        current_user = AuthDAO.get_current_user()
+        if current_user and current_user['role_id'] == 1:  # Admin
+            ttk.Button(
+                action_frame,
+                text="Agregar Niño",
+                command=self.show_add_child_form
+            ).pack(side=tk.LEFT, padx=5)
+            
+            ttk.Button(
+                action_frame,
+                text="Editar",
+                command=self.show_edit_child_form
+            ).pack(side=tk.LEFT, padx=5)
+            
+            ttk.Button(
+                action_frame,
+                text="Eliminar",
+                command=self.delete_child
+            ).pack(side=tk.LEFT, padx=5)
+        
+        # Load initial data
+        self.show_all_children()
+    
+    def search_child(self):
+        name = self.child_search_entry.get()
+        if not name:
+            messagebox.showwarning("Advertencia", "Por favor ingrese un nombre para buscar")
+            return
+        
+        child = ChildDAO.get_child_by_name(name)
+        if child:
+            self.children_tree.delete(*self.children_tree.get_children())
+            tutor_name = self.get_user_name(child.get('tutor_id'))
+            cuidador_name = self.get_user_name(child.get('cuidador_id'))
+            
+            self.children_tree.insert("", tk.END, values=(
+                child.get('id'),
+                child.get('child_name'),
+                child.get('edad', 'N/A'),
+                child.get('informacioMedica', 'N/A'),
+                tutor_name,
+                cuidador_name
+            ))
+    
+    def get_user_name(self, user_id):
+        if not user_id:
+            return "No asignado"
+        
+        current_user = AuthDAO.get_current_user()
+        if current_user and current_user['id'] == user_id:
+            return current_user['username']
+        
+        user = UserDAO.get_user_profile(user_id)
+        if user:
+            return user['username']
+        return "Desconocido"
+    
+    def show_all_children(self):
+        current_user = AuthDAO.get_current_user()
+        if not current_user:
+            return
+        
+        if current_user['role_id'] == 3:  # Tutor
+            children = ChildDAO.get_children_by_tutor(current_user['id'])
+        elif current_user['role_id'] == 4:  # Cuidador
+            children = ChildDAO.get_children_by_cuidador(current_user['id'])
+        else:
+            children = ChildDAO.get_all_children()
+            
+        if children:
+            self.children_tree.delete(*self.children_tree.get_children())
+            for child in children:
+                tutor_name = self.get_user_name(child.get('tutor_id'))
+                cuidador_name = self.get_user_name(child.get('cuidador_id'))
+                
+                self.children_tree.insert("", tk.END, values=(
+                    child.get('id'),
+                    child.get('child_name'),
+                    child.get('edad', 'N/A'),
+                    child.get('informacioMedica', 'N/A'),
+                    tutor_name,
+                    cuidador_name
+                ))
+    
+    def show_selected_child_details(self):
+        selected_item = self.children_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Advertencia", "Por favor seleccione un niño")
+            return
+        
+        item = self.children_tree.item(selected_item[0])
+        child_id = item['values'][0]
+        self.show_child_details(child_id)
+    
+    def show_child_details(self, child_id):
+        self.clear_frame()
+        
+        # Obtener datos del niño
+        child = ChildDAO.get_child_by_id(child_id)
+        if not child:
+            messagebox.showerror("Error", "Niño no encontrado")
+            self.show_children_management()
+            return
+        
+        # Header
+        header_frame = ttk.Frame(self.main_frame)
+        header_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Label(
+            header_frame, 
+            text=f"Detalles de {child['child_name']}", 
+            style="Title.TLabel"
+        ).pack(side=tk.LEFT)
+        
+        ttk.Button(
+            header_frame, 
+            text="Volver", 
+            command=self.show_children_management
+        ).pack(side=tk.RIGHT)
+        
+        # Notebook para pestañas
+        notebook = ttk.Notebook(self.main_frame)
+        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Pestaña de información general
+        info_frame = ttk.Frame(notebook)
+        notebook.add(info_frame, text="Información General")
+        
+        # Mostrar información básica
+        tutor_name = self.get_user_name(child.get('tutor_id'))
+        cuidador_name = self.get_user_name(child.get('cuidador_id'))
+        
+        info_text = f"Nombre: {child['child_name']}\n"
+        info_text += f"Edad: {child.get('edad', 'N/A')}\n"
+        info_text += f"Información Médica: {child.get('informacioMedica', 'N/A')}\n"
+        info_text += f"Tutor: {tutor_name}\n"
+        info_text += f"Cuidador: {cuidador_name}\n"
+        
+        ttk.Label(info_frame, text=info_text).pack(pady=20, padx=20, anchor=tk.W)
+        
+        # Pestaña de historial de sueño
+        historial_frame = ttk.Frame(notebook)
+        notebook.add(historial_frame, text="Historial de Sueño")
+        self.setup_historial_tab(historial_frame, child_id)
+        
+        # Pestaña de comentarios
+        comments_frame = ttk.Frame(notebook)
+        notebook.add(comments_frame, text="Comentarios")
+        self.setup_comments_tab(comments_frame, child_id)
+    
+    def setup_historial_tab(self, parent_frame, child_id):
+        # Treeview para mostrar historial
+        columns = ("fecha", "hora", "estado", "horas_sueño")
+        self.historial_tree = ttk.Treeview(
+            parent_frame,
+            columns=columns,
+            show="headings"
+        )
+        
+        self.historial_tree.heading("fecha", text="Fecha")
+        self.historial_tree.heading("hora", text="Hora")
+        self.historial_tree.heading("estado", text="Estado")
+        self.historial_tree.heading("horas_sueño", text="Horas de Sueño")
+        
+        for col in columns:
+            self.historial_tree.column(col, width=120, anchor=tk.CENTER)
+        
+        scrollbar = ttk.Scrollbar(parent_frame, orient=tk.VERTICAL, command=self.historial_tree.yview)
+        self.historial_tree.configure(yscroll=scrollbar.set)
+        
+        self.historial_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Cargar datos
+        historial = ChildDAO.get_child_historial(child_id)
+        if historial:
+            for entry in historial:
+                self.historial_tree.insert("", tk.END, values=(
+                    entry.get('data'),
+                    entry.get('hora'),
+                    entry.get('estat'),
+                    entry.get('totalHores')
+                ))
+    
+    def setup_comments_tab(self, parent_frame, child_id):
+        # Frame para lista de comentarios
+        list_frame = ttk.Frame(parent_frame)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        columns = ("id", "usuario", "texto", "fecha")
+        self.comments_tree = ttk.Treeview(
+            list_frame,
+            columns=columns,
+            show="headings"
+        )
+        
+        self.comments_tree.heading("id", text="ID")
+        self.comments_tree.heading("usuario", text="Usuario")
+        self.comments_tree.heading("texto", text="Comentario")
+        self.comments_tree.heading("fecha", text="Fecha")
+        
+        self.comments_tree.column("id", width=50, anchor=tk.CENTER)
+        self.comments_tree.column("usuario", width=100)
+        self.comments_tree.column("texto", width=300)
+        self.comments_tree.column("fecha", width=120)
+        
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.comments_tree.yview)
+        self.comments_tree.configure(yscroll=scrollbar.set)
+        
+        self.comments_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Frame para agregar comentario
+        add_frame = ttk.Frame(parent_frame)
+        add_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Label(add_frame, text="Nuevo comentario:").pack(side=tk.LEFT)
+        self.new_comment_entry = ttk.Entry(add_frame, width=50)
+        self.new_comment_entry.pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            add_frame,
+            text="Agregar",
+            command=lambda: self.add_comment(child_id)
+        ).pack(side=tk.LEFT)
+        
+        # Botón para eliminar comentario
+        current_user = AuthDAO.get_current_user()
+        if current_user and current_user['role_id'] in [1, 2]:  # Solo admin y médicos pueden eliminar
+            ttk.Button(
+                parent_frame,
+                text="Eliminar Comentario Seleccionado",
+                command=self.delete_selected_comment
+            ).pack(pady=5)
+        
+        # Cargar comentarios
+        self.load_comments(child_id)
+    
+    def load_comments(self, child_id):
+        comments = CommentDAO.get_comments(child_id)
+        if comments:
+            self.comments_tree.delete(*self.comments_tree.get_children())
+            for comment in comments:
+                username = self.get_user_name(comment.get('user_id'))
+                self.comments_tree.insert("", tk.END, values=(
+                    comment.get('id'),
+                    username,
+                    comment.get('text'),
+                    comment.get('timestamp')
+                ))
+    
+    def add_comment(self, child_id):
+        text = self.new_comment_entry.get()
+        if not text:
+            messagebox.showwarning("Advertencia", "Por favor escriba un comentario")
+            return
+        
+        result = CommentDAO.add_comment(child_id, text)
+        if result:
+            messagebox.showinfo("Éxito", "Comentario agregado correctamente")
+            self.new_comment_entry.delete(0, tk.END)
+            self.load_comments(child_id)
+        else:
+            messagebox.showerror("Error", "No se pudo agregar el comentario")
+    
+    def delete_selected_comment(self):
+        selected_item = self.comments_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Advertencia", "Por favor seleccione un comentario")
+            return
+        
+        comment_id = self.comments_tree.item(selected_item[0])['values'][0]
+        if messagebox.askyesno("Confirmar", "¿Está seguro de eliminar este comentario?"):
+            result = CommentDAO.delete_comment(comment_id)
+            if result:
+                messagebox.showinfo("Éxito", "Comentario eliminado correctamente")
+                self.comments_tree.delete(selected_item)
+            else:
+                messagebox.showerror("Error", "No se pudo eliminar el comentario")
+    
+    def show_add_child_form(self):
+        form_window = tk.Toplevel(self.root)
+        form_window.title("Agregar Niño")
+        form_window.geometry("500x400")
+        
+        ttk.Label(form_window, text="Agregar Niño", style="Title.TLabel").pack(pady=10)
+        
+        form_frame = ttk.Frame(form_window)
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Campos del formulario
+        ttk.Label(form_frame, text="Nombre del niño:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.E)
+        name_entry = ttk.Entry(form_frame)
+        name_entry.grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Label(form_frame, text="Edad:").grid(row=1, column=0, padx=5, pady=5, sticky=tk.E)
+        age_entry = ttk.Entry(form_frame)
+        age_entry.grid(row=1, column=1, padx=5, pady=5)
+        
+        ttk.Label(form_frame, text="Información médica:").grid(row=2, column=0, padx=5, pady=5, sticky=tk.E)
+        medical_info_entry = ttk.Entry(form_frame)
+        medical_info_entry.grid(row=2, column=1, padx=5, pady=5)
+        
+        # Obtener tutores y cuidadores
+        tutores = UserDAO.get_tutores()
+        cuidadores = UserDAO.get_cuidadores()
+        
+        ttk.Label(form_frame, text="Tutor:").grid(row=3, column=0, padx=5, pady=5, sticky=tk.E)
+        tutor_combobox = ttk.Combobox(form_frame, state="readonly")
+        tutor_combobox.grid(row=3, column=1, padx=5, pady=5)
+        
+        if tutores:
+            tutor_combobox['values'] = [(t['id'], t['username']) for t in tutores]
+            if tutores:
+                tutor_combobox.current(0)
+        
+        ttk.Label(form_frame, text="Cuidador:").grid(row=4, column=0, padx=5, pady=5, sticky=tk.E)
+        cuidador_combobox = ttk.Combobox(form_frame, state="readonly")
+        cuidador_combobox.grid(row=4, column=1, padx=5, pady=5)
+        
+        if cuidadores:
+            cuidador_combobox['values'] = [(c['id'], c['username']) for c in cuidadores]
+            if cuidadores:
+                cuidador_combobox.current(0)
+        
+        # Botones
+        button_frame = ttk.Frame(form_frame)
+        button_frame.grid(row=5, column=0, columnspan=2, pady=10)
+        
+        ttk.Button(
+            button_frame,
+            text="Guardar",
+            command=lambda: self.save_child(
+                name_entry.get(),
+                age_entry.get(),
+                medical_info_entry.get(),
+                tutor_combobox.get().split(",")[0].strip("(") if tutor_combobox.get() else None,
+                cuidador_combobox.get().split(",")[0].strip("(") if cuidador_combobox.get() else None,
+                form_window
+            )
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            button_frame,
+            text="Cancelar",
+            command=form_window.destroy
+        ).pack(side=tk.LEFT, padx=5)
+    
+    def save_child(self, name, age, medical_info, tutor_id, cuidador_id, window):
+        if not name:
+            messagebox.showwarning("Advertencia", "El nombre del niño es obligatorio")
+            return
+        
+        try:
+            if age:  # La edad es opcional
+                int(age)
+        except ValueError:
+            messagebox.showerror("Error", "La edad debe ser un número entero")
+            return
+        
+        result = ChildDAO.add_child(name, age, medical_info, tutor_id, cuidador_id)
+        if result:
+            messagebox.showinfo("Éxito", "Niño agregado correctamente")
+            window.destroy()
+            self.show_all_children()
+        else:
+            messagebox.showerror("Error", "No se pudo agregar el niño")
+    
+    def show_edit_child_form(self):
+        selected_item = self.children_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Advertencia", "Por favor seleccione un niño")
+            return
+        
+        item = self.children_tree.item(selected_item[0])
+        child_id = item['values'][0]
+        
+        child = ChildDAO.get_child_by_id(child_id)
+        if not child:
+            messagebox.showerror("Error", "No se pudo cargar la información del niño")
+            return
+        
+        form_window = tk.Toplevel(self.root)
+        form_window.title("Editar Niño")
+        form_window.geometry("500x400")
+        
+        ttk.Label(form_window, text="Editar Niño", style="Title.TLabel").pack(pady=10)
+        
+        form_frame = ttk.Frame(form_window)
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Campos del formulario
+        ttk.Label(form_frame, text="Nombre del niño:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.E)
+        name_entry = ttk.Entry(form_frame)
+        name_entry.grid(row=0, column=1, padx=5, pady=5)
+        name_entry.insert(0, child.get('child_name', ''))
+        
+        ttk.Label(form_frame, text="Edad:").grid(row=1, column=0, padx=5, pady=5, sticky=tk.E)
+        age_entry = ttk.Entry(form_frame)
+        age_entry.grid(row=1, column=1, padx=5, pady=5)
+        age_entry.insert(0, child.get('edad', ''))
+        
+        ttk.Label(form_frame, text="Información médica:").grid(row=2, column=0, padx=5, pady=5, sticky=tk.E)
+        medical_info_entry = ttk.Entry(form_frame)
+        medical_info_entry.grid(row=2, column=1, padx=5, pady=5)
+        medical_info_entry.insert(0, child.get('informacioMedica', ''))
+        
+        # Obtener tutores y cuidadores
+        tutores = UserDAO.get_tutores()
+        cuidadores = UserDAO.get_cuidadores()
+        
+        ttk.Label(form_frame, text="Tutor:").grid(row=3, column=0, padx=5, pady=5, sticky=tk.E)
+        tutor_combobox = ttk.Combobox(form_frame, state="readonly")
+        tutor_combobox.grid(row=3, column=1, padx=5, pady=5)
+        
+        if tutores:
+            tutor_values = [(t['id'], t['username']) for t in tutores]
+            tutor_combobox['values'] = tutor_values
+            
+            # Seleccionar el tutor actual si existe
+            current_tutor_id = child.get('tutor_id')
+            if current_tutor_id:
+                for i, (t_id, t_name) in enumerate(tutor_values):
+                    if str(t_id) == str(current_tutor_id):
+                        tutor_combobox.current(i)
+                        break
+            elif tutor_values:
+                tutor_combobox.current(0)
+        
+        ttk.Label(form_frame, text="Cuidador:").grid(row=4, column=0, padx=5, pady=5, sticky=tk.E)
+        cuidador_combobox = ttk.Combobox(form_frame, state="readonly")
+        cuidador_combobox.grid(row=4, column=1, padx=5, pady=5)
+        
+        if cuidadores:
+            cuidador_values = [(c['id'], c['username']) for c in cuidadores]
+            cuidador_combobox['values'] = cuidador_values
+            
+            # Seleccionar el cuidador actual si existe
+            current_cuidador_id = child.get('cuidador_id')
+            if current_cuidador_id:
+                for i, (c_id, c_name) in enumerate(cuidador_values):
+                    if str(c_id) == str(current_cuidador_id):
+                        cuidador_combobox.current(i)
+                        break
+            elif cuidador_values:
+                cuidador_combobox.current(0)
+        
+        # Botones
+        button_frame = ttk.Frame(form_frame)
+        button_frame.grid(row=5, column=0, columnspan=2, pady=10)
+        
+        ttk.Button(
+            button_frame,
+            text="Guardar",
+            command=lambda: self.update_child(
+                child_id,
+                name_entry.get(),
+                age_entry.get(),
+                medical_info_entry.get(),
+                tutor_combobox.get().split(",")[0].strip("(") if tutor_combobox.get() else None,
+                cuidador_combobox.get().split(",")[0].strip("(") if cuidador_combobox.get() else None,
+                form_window
+            )
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            button_frame,
+            text="Cancelar",
+            command=form_window.destroy
+        ).pack(side=tk.LEFT, padx=5)
+    
+    def update_child(self, child_id, name, age, medical_info, tutor_id, cuidador_id, window):
+        if not name:
+            messagebox.showwarning("Advertencia", "El nombre del niño es obligatorio")
+            return
+        
+        try:
+            if age:  # La edad es opcional
+                int(age)
+        except ValueError:
+            messagebox.showerror("Error", "La edad debe ser un número entero")
+            return
+        
+        result = ChildDAO.update_child(child_id, name, age, medical_info, tutor_id, cuidador_id)
+        if result:
+            messagebox.showinfo("Éxito", "Niño actualizado correctamente")
+            window.destroy()
+            self.show_all_children()
+        else:
+            messagebox.showerror("Error", "No se pudo actualizar el niño")
+    
+    def delete_child(self):
+        selected_item = self.children_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Advertencia", "Por favor seleccione un niño")
+            return
+        
+        child_id = self.children_tree.item(selected_item[0])['values'][0]
+        child_name = self.children_tree.item(selected_item[0])['values'][1]
+        
+        if messagebox.askyesno("Confirmar", f"¿Está seguro de eliminar al niño {child_name}?"):
+            result = ChildDAO.delete_child(child_id)
+            if result:
+                messagebox.showinfo("Éxito", "Niño eliminado correctamente")
+                self.show_all_children()
+            else:
+                messagebox.showerror("Error", "No se pudo eliminar el niño")
+    
+    def show_add_historial(self):
+        self.clear_frame()
+        
+        # Header
+        header_frame = ttk.Frame(self.main_frame)
+        header_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Label(
+            header_frame, 
+            text="Registrar Historial de Sueño", 
+            style="Title.TLabel"
+        ).pack(side=tk.LEFT)
+        
+        ttk.Button(
+            header_frame, 
+            text="Volver", 
+            command=self.show_main_menu
+        ).pack(side=tk.RIGHT)
+        
+        # Formulario
+        form_frame = ttk.Frame(self.main_frame)
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Selección de niño
+        ttk.Label(form_frame, text="Niño:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.E)
+        self.historial_child_combobox = ttk.Combobox(form_frame, state="readonly")
+        self.historial_child_combobox.grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
+        
+        # Cargar niños en el combobox
+        children = ChildDAO.get_all_children()
+        if children:
+            self.historial_child_combobox['values'] = [(child['id'], child['child_name']) for child in children]
+            if children:
+                self.historial_child_combobox.current(0)
+        
+        # Fecha
+        ttk.Label(form_frame, text="Fecha (YYYY-MM-DD):").grid(row=1, column=0, padx=5, pady=5, sticky=tk.E)
+        self.historial_date_entry = ttk.Entry(form_frame)
+        self.historial_date_entry.grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
+        self.historial_date_entry.insert(0, datetime.now().strftime("%Y-%m-%d"))
+        
+        # Hora
+        ttk.Label(form_frame, text="Hora (HH:MM):").grid(row=2, column=0, padx=5, pady=5, sticky=tk.E)
+        self.historial_time_entry = ttk.Entry(form_frame)
+        self.historial_time_entry.grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
+        self.historial_time_entry.insert(0, datetime.now().strftime("%H:%M"))
+        
+        # Estado
+        ttk.Label(form_frame, text="Estado:").grid(row=3, column=0, padx=5, pady=5, sticky=tk.E)
+        self.historial_state_combobox = ttk.Combobox(form_frame, values=["Dormido", "Despierto", "Inquieto"])
+        self.historial_state_combobox.grid(row=3, column=1, padx=5, pady=5, sticky=tk.W)
+        self.historial_state_combobox.current(0)
+        
+        # Horas de sueño
+        ttk.Label(form_frame, text="Horas de sueño:").grid(row=4, column=0, padx=5, pady=5, sticky=tk.E)
+        self.historial_hours_entry = ttk.Entry(form_frame)
+        self.historial_hours_entry.grid(row=4, column=1, padx=5, pady=5, sticky=tk.W)
+        
+        # Botón para guardar
+        ttk.Button(
+            form_frame,
+            text="Guardar Historial",
+            command=self.save_historial
+        ).grid(row=5, column=1, pady=10, sticky=tk.E)
+    
+    def save_historial(self):
+        try:
+            # Validar datos antes de enviar
+            child_id = int(self.historial_child_combobox.get().split(",")[0].strip("("))
+            date_str = self.historial_date_entry.get()
+            time_str = self.historial_time_entry.get()
+            state = self.historial_state_combobox.get()
+            hours = self.historial_hours_entry.get()
+            
+            # Validar fecha
+            datetime.strptime(date_str, "%Y-%m-%d")
+            # Validar hora
+            datetime.strptime(time_str, "%H:%M")
+            # Validar horas de sueño
+            float(hours)
+            
+            if not all([child_id, date_str, time_str, state, hours]):
+                raise ValueError("Todos los campos son obligatorios")
+                
+        except ValueError as e:
+            messagebox.showerror("Error", f"Datos inválidos: {str(e)}")
+            return
+        
+        # Guardar historial
+        result = ChildDAO.add_historial(child_id, date_str, time_str, state, hours)
+        if result:
+            messagebox.showinfo("Éxito", "Historial guardado correctamente")
+            self.show_main_menu()
+        else:
+            messagebox.showerror("Error", "No se pudo guardar el historial")
+    
+    def show_user_management(self):
+        self.clear_frame()
+        
+        # Verificar permisos de administrador
+        current_user = AuthDAO.get_current_user()
+        if not current_user or current_user['role_id'] != 1:  # 1 = Admin
+            messagebox.showerror("Error", "No tiene permisos para acceder a esta sección")
+            self.show_main_menu()
+            return
+        
+        # Header
+        header_frame = ttk.Frame(self.main_frame)
+        header_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Label(
+            header_frame, 
+            text="Gestión de Usuarios", 
+            style="Title.TLabel"
+        ).pack(side=tk.LEFT)
+        
+        ttk.Button(
+            header_frame, 
+            text="Volver", 
+            command=self.show_main_menu
+        ).pack(side=tk.RIGHT)
+        
+        # Notebook para pestañas
+        notebook = ttk.Notebook(self.main_frame)
+        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Pestaña de todos los usuarios
+        users_frame = ttk.Frame(notebook)
+        notebook.add(users_frame, text="Todos los Usuarios")
+        self.setup_users_tab(users_frame)
+        
+        # Pestaña de cuidadores
+        cuidadores_frame = ttk.Frame(notebook)
+        notebook.add(cuidadores_frame, text="Cuidadores")
+        self.setup_cuidadores_tab(cuidadores_frame)
+        
+        # Pestaña de tutores
+        tutores_frame = ttk.Frame(notebook)
+        notebook.add(tutores_frame, text="Tutores")
+        self.setup_tutores_tab(tutores_frame)
+    
+    def setup_users_tab(self, parent_frame):
+        # Treeview para mostrar usuarios
+        columns = ("id", "username", "email", "role")
+        self.users_tree = ttk.Treeview(
+            parent_frame,
+            columns=columns,
+            show="headings"
+        )
+        
+        self.users_tree.heading("id", text="ID")
+        self.users_tree.heading("username", text="Nombre de Usuario")
+        self.users_tree.heading("email", text="Email")
+        self.users_tree.heading("role", text="Rol")
+        
+        self.users_tree.column("id", width=50, anchor=tk.CENTER)
+        self.users_tree.column("username", width=150)
+        self.users_tree.column("email", width=200)
+        self.users_tree.column("role", width=100)
+        
+        scrollbar = ttk.Scrollbar(parent_frame, orient=tk.VERTICAL, command=self.users_tree.yview)
+        self.users_tree.configure(yscroll=scrollbar.set)
+        
+        self.users_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Botones de acción
+        action_frame = ttk.Frame(parent_frame)
+        action_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Button(
+            action_frame,
+            text="Actualizar Lista",
+            command=self.load_users
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            action_frame,
+            text="Agregar Usuario",
+            command=self.show_add_user_form
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            action_frame,
+            text="Editar",
+            command=self.show_edit_user_form
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            action_frame,
+            text="Eliminar",
+            command=self.delete_user
+        ).pack(side=tk.LEFT, padx=5)
+        
+        # Cargar datos
+        self.load_users()
+    
+    def setup_cuidadores_tab(self, parent_frame):
+        # Treeview para mostrar cuidadores
+        columns = ("id", "username", "email")
+        self.cuidadores_tree = ttk.Treeview(
+            parent_frame,
+            columns=columns,
+            show="headings"
+        )
+        
+        self.cuidadores_tree.heading("id", text="ID")
+        self.cuidadores_tree.heading("username", text="Nombre de Usuario")
+        self.cuidadores_tree.heading("email", text="Email")
+        
+        self.cuidadores_tree.column("id", width=50, anchor=tk.CENTER)
+        self.cuidadores_tree.column("username", width=150)
+        self.cuidadores_tree.column("email", width=200)
+        
+        scrollbar = ttk.Scrollbar(parent_frame, orient=tk.VERTICAL, command=self.cuidadores_tree.yview)
+        self.cuidadores_tree.configure(yscroll=scrollbar.set)
+        
+        self.cuidadores_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Botones de acción
+        action_frame = ttk.Frame(parent_frame)
+        action_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Button(
+            action_frame,
+            text="Actualizar Lista",
+            command=self.load_cuidadores
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            action_frame,
+            text="Agregar Cuidador",
+            command=lambda: self.show_add_user_form(is_cuidador=True)
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            action_frame,
+            text="Eliminar",
+            command=self.delete_cuidador
+        ).pack(side=tk.LEFT, padx=5)
+        
+        # Cargar datos
+        self.load_cuidadores()
+    
+    def setup_tutores_tab(self, parent_frame):
+        # Treeview para mostrar tutores
+        columns = ("id", "username", "email")
+        self.tutores_tree = ttk.Treeview(
+            parent_frame,
+            columns=columns,
+            show="headings"
+        )
+        
+        self.tutores_tree.heading("id", text="ID")
+        self.tutores_tree.heading("username", text="Nombre de Usuario")
+        self.tutores_tree.heading("email", text="Email")
+        
+        self.tutores_tree.column("id", width=50, anchor=tk.CENTER)
+        self.tutores_tree.column("username", width=150)
+        self.tutores_tree.column("email", width=200)
+        
+        scrollbar = ttk.Scrollbar(parent_frame, orient=tk.VERTICAL, command=self.tutores_tree.yview)
+        self.tutores_tree.configure(yscroll=scrollbar.set)
+        
+        self.tutores_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Botones de acción
+        action_frame = ttk.Frame(parent_frame)
+        action_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Button(
+            action_frame,
+            text="Actualizar Lista",
+            command=self.load_tutores
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            action_frame,
+            text="Agregar Tutor",
+            command=lambda: self.show_add_user_form(is_tutor=True)
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            action_frame,
+            text="Eliminar",
+            command=self.delete_tutor
+        ).pack(side=tk.LEFT, padx=5)
+        
+        # Cargar datos
+        self.load_tutores()
+    
+    def load_users(self):
+        users = UserDAO.get_all_users()
+        if users:
+            self.users_tree.delete(*self.users_tree.get_children())
+            for user in users:
+                self.users_tree.insert("", tk.END, values=(
+                    user.get('id'),
+                    user.get('username'),
+                    user.get('email'),
+                    self.get_role_name(user.get('role_id'))
+                ))
+    
+    def load_cuidadores(self):
+        cuidadores = UserDAO.get_cuidadores()
+        if cuidadores:
+            self.cuidadores_tree.delete(*self.cuidadores_tree.get_children())
+            for cuidador in cuidadores:
+                self.cuidadores_tree.insert("", tk.END, values=(
+                    cuidador.get('id'),
+                    cuidador.get('username'),
+                    cuidador.get('email')
+                ))
+    
+    def load_tutores(self):
+        tutores = UserDAO.get_tutores()
+        if tutores:
+            self.tutores_tree.delete(*self.tutores_tree.get_children())
+            for tutor in tutores:
+                self.tutores_tree.insert("", tk.END, values=(
+                    tutor.get('id'),
+                    tutor.get('username'),
+                    tutor.get('email')
+                ))
+    
+    def show_add_user_form(self, is_cuidador=False, is_tutor=False):
+        title = "Agregar Usuario"
+        if is_cuidador:
+            title = "Agregar Cuidador"
+        elif is_tutor:
+            title = "Agregar Tutor"
+        
+        form_window = tk.Toplevel(self.root)
+        form_window.title(title)
+        form_window.geometry("400x300")
+        
+        ttk.Label(form_window, text=title, style="Title.TLabel").pack(pady=10)
+        
+        form_frame = ttk.Frame(form_window)
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Campos del formulario
+        ttk.Label(form_frame, text="Nombre de usuario:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.E)
+        username_entry = ttk.Entry(form_frame)
+        username_entry.grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Label(form_frame, text="Email:").grid(row=1, column=0, padx=5, pady=5, sticky=tk.E)
+        email_entry = ttk.Entry(form_frame)
+        email_entry.grid(row=1, column=1, padx=5, pady=5)
+        
+        ttk.Label(form_frame, text="Contraseña:").grid(row=2, column=0, padx=5, pady=5, sticky=tk.E)
+        password_entry = ttk.Entry(form_frame, show="*")
+        password_entry.grid(row=2, column=1, padx=5, pady=5)
+        
+        if not is_cuidador and not is_tutor:
+            ttk.Label(form_frame, text="Rol:").grid(row=3, column=0, padx=5, pady=5, sticky=tk.E)
+            role_combobox = ttk.Combobox(form_frame, values=["1 - Admin", "2 - Médico", "3 - Tutor", "4 - Cuidador"])
+            role_combobox.grid(row=3, column=1, padx=5, pady=5)
+            role_combobox.current(0)
+        
+        # Botones
+        button_frame = ttk.Frame(form_frame)
+        button_frame.grid(row=4, column=0, columnspan=2, pady=10)
+        
+        ttk.Button(
+            button_frame,
+            text="Guardar",
+            command=lambda: self.save_user(
+                username_entry.get(),
+                email_entry.get(),
+                password_entry.get(),
+                role_combobox.get().split(" - ")[0] if not is_cuidador and not is_tutor else "4" if is_cuidador else "3",
+                is_cuidador,
+                is_tutor,
+                form_window
+            )
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            button_frame,
+            text="Cancelar",
+            command=form_window.destroy
+        ).pack(side=tk.LEFT, padx=5)
+    
+    def save_user(self, username, email, password, role_id, is_cuidador, is_tutor, form_window):
+        if not all([username, email, password]):
+            messagebox.showwarning("Advertencia", "Todos los campos son obligatorios")
+            return
+        
+        if is_cuidador:
+            result = UserDAO.create_cuidador(username, email, password)
+        elif is_tutor:
+            result = UserDAO.create_tutor(username, email, password)
+        else:
+            result = UserDAO.create_user(username, email, password, role_id)
+        
+        if result:
+            messagebox.showinfo("Éxito", "Usuario guardado correctamente")
+            form_window.destroy()
+            if is_cuidador:
+                self.load_cuidadores()
+            elif is_tutor:
+                self.load_tutores()
+            else:
+                self.load_users()
+        else:
+            messagebox.showerror("Error", "No se pudo guardar el usuario")
+    
+    def show_edit_user_form(self):
+        selected_item = self.users_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Advertencia", "Por favor seleccione un usuario")
+            return
+        
+        user_data = self.users_tree.item(selected_item[0])['values']
+        
+        form_window = tk.Toplevel(self.root)
+        form_window.title("Editar Usuario")
+        form_window.geometry("400x300")
+        
+        ttk.Label(form_window, text="Editar Usuario", style="Title.TLabel").pack(pady=10)
+        
+        form_frame = ttk.Frame(form_window)
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Campos del formulario
+        ttk.Label(form_frame, text="Nombre de usuario:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.E)
+        username_entry = ttk.Entry(form_frame)
+        username_entry.grid(row=0, column=1, padx=5, pady=5)
+        username_entry.insert(0, user_data[1])
+        
+        ttk.Label(form_frame, text="Email:").grid(row=1, column=0, padx=5, pady=5, sticky=tk.E)
+        email_entry = ttk.Entry(form_frame)
+        email_entry.grid(row=1, column=1, padx=5, pady=5)
+        email_entry.insert(0, user_data[2])
+        
+        ttk.Label(form_frame, text="Nueva contraseña:").grid(row=2, column=0, padx=5, pady=5, sticky=tk.E)
+        password_entry = ttk.Entry(form_frame, show="*")
+        password_entry.grid(row=2, column=1, padx=5, pady=5)
+        
+        ttk.Label(form_frame, text="Rol:").grid(row=3, column=0, padx=5, pady=5, sticky=tk.E)
+        role_combobox = ttk.Combobox(form_frame, values=["1 - Admin", "2 - Médico", "3 - Tutor", "4 - Cuidador"])
+        role_combobox.grid(row=3, column=1, padx=5, pady=5)
+        
+        # Establecer el rol actual
+        current_role = user_data[3]
+        role_combobox.set(f"{current_role.split(' - ')[0]} - {current_role.split(' - ')[1]}")
+        
+        # Botones
+        button_frame = ttk.Frame(form_frame)
+        button_frame.grid(row=4, column=0, columnspan=2, pady=10)
+        
+        ttk.Button(
+            button_frame,
+            text="Guardar",
+            command=lambda: self.update_user(
+                user_data[0],
+                username_entry.get(),
+                email_entry.get(),
+                password_entry.get(),
+                role_combobox.get().split(" - ")[0],
+                form_window
+            )
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            button_frame,
+            text="Cancelar",
+            command=form_window.destroy
+        ).pack(side=tk.LEFT, padx=5)
+    
+    def update_user(self, user_id, username, email, password, role_id, form_window):
+        if not all([username, email]):
+            messagebox.showwarning("Advertencia", "Nombre de usuario y email son obligatorios")
+            return
+        
+        result = UserDAO.update_user(user_id, username, email, password if password else None)
+        if result:
+            messagebox.showinfo("Éxito", "Usuario actualizado correctamente")
+            form_window.destroy()
+            self.load_users()
+        else:
+            messagebox.showerror("Error", "No se pudo actualizar el usuario")
+    
+    def delete_user(self):
+        selected_item = self.users_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Advertencia", "Por favor seleccione un usuario")
+            return
+        
+        user_data = self.users_tree.item(selected_item[0])['values']
+        
+        if messagebox.askyesno("Confirmar", f"¿Está seguro de eliminar al usuario {user_data[1]}?"):
+            result = UserDAO.delete_user(user_data[0])
+            if result:
+                messagebox.showinfo("Éxito", "Usuario eliminado correctamente")
+                self.load_users()
+            else:
+                messagebox.showerror("Error", "No se pudo eliminar el usuario")
+    
+    def delete_cuidador(self):
+        selected_item = self.cuidadores_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Advertencia", "Por favor seleccione un cuidador")
+            return
+        
+        cuidador_data = self.cuidadores_tree.item(selected_item[0])['values']
+        
+        if messagebox.askyesno("Confirmar", f"¿Está seguro de eliminar al cuidador {cuidador_data[1]}?"):
+            result = UserDAO.delete_user(cuidador_data[0])
+            if result:
+                messagebox.showinfo("Éxito", "Cuidador eliminado correctamente")
+                self.load_cuidadores()
+            else:
+                messagebox.showerror("Error", "No se pudo eliminar el cuidador")
+    
+    def delete_tutor(self):
+        selected_item = self.tutores_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Advertencia", "Por favor seleccione un tutor")
+            return
+        
+        tutor_data = self.tutores_tree.item(selected_item[0])['values']
+        
+        if messagebox.askyesno("Confirmar", f"¿Está seguro de eliminar al tutor {tutor_data[1]}?"):
+            result = UserDAO.delete_user(tutor_data[0])
+            if result:
+                messagebox.showinfo("Éxito", "Tutor eliminado correctamente")
+                self.load_tutores()
+            else:
+                messagebox.showerror("Error", "No se pudo eliminar el tutor")
+    
+    def show_settings(self):
+        self.clear_frame()
+        
+        # Header
+        header_frame = ttk.Frame(self.main_frame)
+        header_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        ttk.Label(
+            header_frame, 
+            text="Configuración", 
+            style="Title.TLabel"
+        ).pack(side=tk.LEFT)
+        
+        ttk.Button(
+            header_frame, 
+            text="Volver", 
+            command=self.show_main_menu
+        ).pack(side=tk.RIGHT)
+        
+        # Contenido
+        content_frame = ttk.Frame(self.main_frame)
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Opción para recuperar contraseña
+        ttk.Label(
+            content_frame,
+            text="Recuperar Contraseña",
+            style="Header.TLabel"
+        ).pack(pady=10)
+        
+        recovery_frame = ttk.Frame(content_frame)
+        recovery_frame.pack(pady=10)
+        
+        ttk.Label(recovery_frame, text="Email:").pack(side=tk.LEFT)
+        self.recovery_email_entry = ttk.Entry(recovery_frame, width=30)
+        self.recovery_email_entry.pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            recovery_frame,
+            text="Enviar",
+            command=self.recover_password
+        ).pack(side=tk.LEFT)
 
-    def open_login_window(self):
-        """Abre la ventana de login."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Login", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="Email:").pack()
-        self.email_entry = tk.Entry(self.root)
-        self.email_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Contraseña:").pack()
-        self.password_entry = tk.Entry(self.root, show="*")
-        self.password_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Iniciar Sesión", command=self.login).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def login(self):
-        """Maneja el proceso de login."""
+# Ventana de Login
+class LoginWindow:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("TapatApp - Iniciar Sesión")
+        self.root.geometry("400x300")
+        
+        configure_styles()
+        
+        self.main_frame = ttk.Frame(self.root)
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        ttk.Label(
+            self.main_frame,
+            text="Iniciar Sesión",
+            style="Title.TLabel"
+        ).pack(pady=20)
+        
+        # Formulario
+        form_frame = ttk.Frame(self.main_frame)
+        form_frame.pack(pady=20)
+        
+        ttk.Label(form_frame, text="Email:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.E)
+        self.email_entry = ttk.Entry(form_frame, width=30)
+        self.email_entry.grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Label(form_frame, text="Contraseña:").grid(row=1, column=0, padx=5, pady=5, sticky=tk.E)
+        self.password_entry = ttk.Entry(form_frame, width=30, show="*")
+        self.password_entry.grid(row=1, column=1, padx=5, pady=5)
+        
+        # Botones
+        button_frame = ttk.Frame(self.main_frame)
+        button_frame.pack(pady=20)
+        
+        ttk.Button(
+            button_frame,
+            text="Iniciar Sesión",
+            command=self.do_login
+        ).pack(side=tk.LEFT, padx=10)
+        
+        ttk.Button(
+            button_frame,
+            text="Recuperar Contraseña",
+            command=self.show_recovery
+        ).pack(side=tk.LEFT, padx=10)
+    
+    def do_login(self):
         email = self.email_entry.get()
         password = self.password_entry.get()
-
-        usuario = UsuarioDAO.login(email, password)
-        if usuario:
-            messagebox.showinfo("Login Exitoso", f"Bienvenido, {usuario.get('username', 'Usuario')}!")
-            self.create_main_menu()
+        
+        if not email or not password:
+            messagebox.showwarning("Advertencia", "Por favor ingrese email y contraseña")
+            return
+        
+        user = AuthDAO.login(email, password)
+        if user:
+            self.root.destroy()
+            root = tk.Tk()
+            app = MainApp(root)
+            root.mainloop()
+    
+    def show_recovery(self):
+        recovery_window = tk.Toplevel(self.root)
+        recovery_window.title("Recuperar Contraseña")
+        recovery_window.geometry("400x200")
+        
+        ttk.Label(
+            recovery_window,
+            text="Recuperar Contraseña",
+            style="Title.TLabel"
+        ).pack(pady=20)
+        
+        form_frame = ttk.Frame(recovery_window)
+        form_frame.pack(pady=20)
+        
+        ttk.Label(form_frame, text="Email:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.E)
+        email_entry = ttk.Entry(form_frame, width=30)
+        email_entry.grid(row=0, column=1, padx=5, pady=5)
+        
+        button_frame = ttk.Frame(recovery_window)
+        button_frame.pack(pady=10)
+        
+        ttk.Button(
+            button_frame,
+            text="Enviar",
+            command=lambda: self.send_recovery(email_entry.get(), recovery_window)
+        ).pack(side=tk.LEFT, padx=10)
+        
+        ttk.Button(
+            button_frame,
+            text="Cancelar",
+            command=recovery_window.destroy
+        ).pack(side=tk.LEFT, padx=10)
+    
+    def send_recovery(self, email, window):
+        if not email:
+            messagebox.showwarning("Advertencia", "Por favor ingrese un email")
+            return
+        
+        result = AuthDAO.recover_password(email)
+        if result:
+            messagebox.showinfo("Éxito", result.get('message', 'Se ha enviado un correo con instrucciones'))
+            window.destroy()
         else:
-            messagebox.showerror("Error", "Login fallido. Verifique sus credenciales.")
+            messagebox.showerror("Error", "No se pudo enviar el correo de recuperación")
 
-    def open_registro_window(self):
-        """Abre la ventana de registro."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Registro", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="Nombre:").pack()
-        self.nombre_entry = tk.Entry(self.root)
-        self.nombre_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Apellido:").pack()
-        self.apellido_entry = tk.Entry(self.root)
-        self.apellido_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Email:").pack()
-        self.email_registro_entry = tk.Entry(self.root)
-        self.email_registro_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Contraseña:").pack()
-        self.password_registro_entry = tk.Entry(self.root, show="*")
-        self.password_registro_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Registrar", command=self.registrar).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def registrar(self):
-        """Maneja el proceso de registro."""
-        nombre = self.nombre_entry.get()
-        apellido = self.apellido_entry.get()
-        email = self.email_registro_entry.get()
-        password = self.password_registro_entry.get()
-
-        usuario = UsuarioDAO.registrar(nombre, apellido, email, password)
-        if usuario:
-            messagebox.showinfo("Registro Exitoso", f"Usuario registrado: {usuario.get('username', 'Usuario')}")
-            self.create_main_menu()
-        else:
-            messagebox.showerror("Error", "Error en el registro.")
-
-    def open_child_info_window(self):
-        """Abre la ventana para ver la información de un niño."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Información del Niño", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="Nombre del niño:").pack()
-        self.child_name_entry = tk.Entry(self.root)
-        self.child_name_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Buscar", command=self.show_child_info).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def show_child_info(self):
-        """Muestra la información del niño."""
-        child_name = self.child_name_entry.get()
-        child = NenDAO.get_child_by_name(child_name)
-        if child:
-            messagebox.showinfo("Información del Niño", str(child))
-        else:
-            messagebox.showerror("Error", f"No se encontró un niño con el nombre '{child_name}'.")
-
-    def open_recuperar_contrasena_window(self):
-        """Abre la ventana para recuperar contraseña."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Recuperar Contraseña", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="Email:").pack()
-        self.email_recuperar_entry = tk.Entry(self.root)
-        self.email_recuperar_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Recuperar", command=self.recuperar_contrasena).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def recuperar_contrasena(self):
-        """Maneja el proceso de recuperación de contraseña."""
-        email = self.email_recuperar_entry.get()
-        response = UsuarioDAO.recuperar_contrasena(email)
-        if response:
-            messagebox.showinfo("Éxito", response.get("message", "Correo enviado con éxito."))
-        else:
-            messagebox.showerror("Error", "No se pudo enviar el correo.")
-
-    def open_show_all_children_window(self):
-        """Abre la ventana para ver todos los niños."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Lista de Niños", font=("Arial", 14)).pack(pady=10)
-
-        children = NenDAO.get_all_children()
-        if children:
-            for child in children:
-                tk.Label(self.root, text=f"ID: {child['id']}, Nombre: {child['child_name']}").pack()
-        else:
-            tk.Label(self.root, text="No se encontraron niños.").pack()
-
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=10)
-
-    def open_show_child_historial_window(self):
-        """Abre la ventana para ver el historial de un niño."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Historial del Niño", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del niño:").pack()
-        self.child_id_entry = tk.Entry(self.root)
-        self.child_id_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Buscar", command=self.show_child_historial).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def show_child_historial(self):
-        """Muestra el historial de un niño."""
-        child_id = self.child_id_entry.get()
-        historial = NenDAO.get_child_historial(child_id)
-        if historial:
-            historial_text = "\n".join([f"Fecha: {h['data']}, Hora: {h['hora']}, Estado: {h['estat']}, Total horas: {h['totalHores']}" for h in historial])
-            messagebox.showinfo("Historial del Niño", historial_text)
-        else:
-            messagebox.showerror("Error", "No se encontró historial para el niño.")
-
-    def open_show_all_users_window(self):
-        """Abre la ventana para ver todos los usuarios."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Lista de Usuarios", font=("Arial", 14)).pack(pady=10)
-
-        users = AdminDAO.get_all_users()
-        if users:
-            for user in users:
-                tk.Label(self.root, text=f"ID: {user['id']}, Nombre: {user['username']}, Email: {user['email']}, Rol: {user['role_id']}").pack()
-        else:
-            tk.Label(self.root, text="No se encontraron usuarios.").pack()
-
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=10)
-
-    def open_delete_user_window(self):
-        """Abre la ventana para eliminar un usuario."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Eliminar Usuario", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del usuario:").pack()
-        self.user_id_entry = tk.Entry(self.root)
-        self.user_id_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Eliminar", command=self.delete_user).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def delete_user(self):
-        """Maneja el proceso de eliminar un usuario."""
-        user_id = self.user_id_entry.get()
-        response = AdminDAO.delete_user(user_id)
-        if response:
-            messagebox.showinfo("Éxito", response.get("message", "Usuario eliminado correctamente."))
-        else:
-            messagebox.showerror("Error", "No se pudo eliminar el usuario.")
-
-    def open_create_user_window(self):
-        """Abre la ventana para crear un usuario."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Crear Usuario", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="Nombre:").pack()
-        self.nombre_create_entry = tk.Entry(self.root)
-        self.nombre_create_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Email:").pack()
-        self.email_create_entry = tk.Entry(self.root)
-        self.email_create_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Contraseña:").pack()
-        self.password_create_entry = tk.Entry(self.root, show="*")
-        self.password_create_entry.pack(pady=5)
-
-        tk.Label(self.root, text="ID del Rol:").pack()
-        self.role_id_entry = tk.Entry(self.root)
-        self.role_id_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Crear", command=self.create_user).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def create_user(self):
-        """Maneja el proceso de crear un usuario."""
-        nombre = self.nombre_create_entry.get()
-        email = self.email_create_entry.get()
-        password = self.password_create_entry.get()
-        role_id = self.role_id_entry.get()
-
-        response = AdminDAO.create_user(nombre, email, password, role_id)
-        if response:
-            messagebox.showinfo("Éxito", f"Usuario creado: {response.get('username', 'Usuario')}")
-        else:
-            messagebox.showerror("Error", "No se pudo crear el usuario.")
-
-    def open_update_user_window(self):
-        """Abre la ventana para actualizar un usuario."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Actualizar Usuario", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del usuario:").pack()
-        self.user_id_update_entry = tk.Entry(self.root)
-        self.user_id_update_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Nuevo nombre:").pack()
-        self.username_update_entry = tk.Entry(self.root)
-        self.username_update_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Nueva contraseña:").pack()
-        self.password_update_entry = tk.Entry(self.root, show="*")
-        self.password_update_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Nuevo email:").pack()
-        self.email_update_entry = tk.Entry(self.root)
-        self.email_update_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Nuevo ID del Rol:").pack()
-        self.role_id_update_entry = tk.Entry(self.root)
-        self.role_id_update_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Actualizar", command=self.update_user).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def update_user(self):
-        """Maneja el proceso de actualizar un usuario."""
-        user_id = self.user_id_update_entry.get()
-        username = self.username_update_entry.get()
-        password = self.password_update_entry.get()
-        email = self.email_update_entry.get()
-        role_id = self.role_id_update_entry.get()
-
-        response = AdminDAO.update_user(user_id, username, password, email, role_id)
-        if response:
-            messagebox.showinfo("Éxito", f"Usuario actualizado: {response.get('username', 'Usuario')}")
-        else:
-            messagebox.showerror("Error", "No se pudo actualizar el usuario.")
-
-    def open_create_cuidador_window(self):
-        """Abre la ventana para crear un cuidador."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Crear Cuidador", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="Nombre:").pack()
-        self.nombre_cuidador_entry = tk.Entry(self.root)
-        self.nombre_cuidador_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Email:").pack()
-        self.email_cuidador_entry = tk.Entry(self.root)
-        self.email_cuidador_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Contraseña:").pack()
-        self.password_cuidador_entry = tk.Entry(self.root, show="*")
-        self.password_cuidador_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Crear", command=self.create_cuidador).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def create_cuidador(self):
-        """Maneja el proceso de crear un cuidador."""
-        nombre = self.nombre_cuidador_entry.get()
-        email = self.email_cuidador_entry.get()
-        password = self.password_cuidador_entry.get()
-
-        response = AdminDAO.create_cuidador(nombre, password, email)
-        if response:
-            messagebox.showinfo("Éxito", f"Cuidador creado: {response.get('username', 'Cuidador')}")
-        else:
-            messagebox.showerror("Error", "No se pudo crear el cuidador.")
-
-    def open_show_cuidadores_window(self):
-        """Abre la ventana para ver todos los cuidadores."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Lista de Cuidadores", font=("Arial", 14)).pack(pady=10)
-
-        cuidadores = MedicoDAO.get_cuidadores()
-        if cuidadores:
-            for cuidador in cuidadores:
-                tk.Label(self.root, text=f"ID: {cuidador['id']}, Nombre: {cuidador['username']}, Email: {cuidador['email']}").pack()
-        else:
-            tk.Label(self.root, text="No se encontraron cuidadores.").pack()
-
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=10)
-
-    def open_add_cuidador_window(self):
-        """Abre la ventana para añadir un cuidador."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Añadir Cuidador", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="Nombre:").pack()
-        self.nombre_add_cuidador_entry = tk.Entry(self.root)
-        self.nombre_add_cuidador_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Email:").pack()
-        self.email_add_cuidador_entry = tk.Entry(self.root)
-        self.email_add_cuidador_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Contraseña:").pack()
-        self.password_add_cuidador_entry = tk.Entry(self.root, show="*")
-        self.password_add_cuidador_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Añadir", command=self.add_cuidador).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def add_cuidador(self):
-        """Maneja el proceso de añadir un cuidador."""
-        nombre = self.nombre_add_cuidador_entry.get()
-        email = self.email_add_cuidador_entry.get()
-        password = self.password_add_cuidador_entry.get()
-
-        response = MedicoDAO.add_cuidador(nombre, password, email)
-        if response:
-            messagebox.showinfo("Éxito", f"Cuidador añadido: {response.get('username', 'Cuidador')}")
-        else:
-            messagebox.showerror("Error", "No se pudo añadir el cuidador.")
-
-    def open_delete_cuidador_window(self):
-        """Abre la ventana para eliminar un cuidador."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Eliminar Cuidador", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del cuidador:").pack()
-        self.cuidador_id_entry = tk.Entry(self.root)
-        self.cuidador_id_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Eliminar", command=self.delete_cuidador).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def delete_cuidador(self):
-        """Maneja el proceso de eliminar un cuidador."""
-        user_id = self.cuidador_id_entry.get()
-        response = MedicoDAO.delete_cuidador(user_id)
-        if response:
-            messagebox.showinfo("Éxito", response.get("message", "Cuidador eliminado correctamente."))
-        else:
-            messagebox.showerror("Error", "No se pudo eliminar el cuidador.")
-
-    def show_user_info(self):
-        """Muestra la información del usuario logueado."""
-        user_data = LocalStorage.get_item('user')
-        if user_data:
-            user = json.loads(user_data)
-            messagebox.showinfo("Información del Usuario", f"Usuario logueado: {user['username']} ({user['email']})")
-        else:
-            messagebox.showerror("Error", "No hay usuario logueado.")
-
-    def open_search_window(self):
-        """Abre la ventana de búsqueda."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Buscar", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="Término de búsqueda:").pack()
-        self.search_entry = tk.Entry(self.root)
-        self.search_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Buscar", command=self.search).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def search(self):
-        """Maneja el proceso de búsqueda."""
-        query = self.search_entry.get()
-        results = SearchDAO.search(query)
-        if results:
-            results_text = "\n".join([f"{category.capitalize()}: {item}" for category, items in results.items() for item in items])
-            messagebox.showinfo("Resultados de la Búsqueda", results_text)
-        else:
-            messagebox.showerror("Error", "No se encontraron resultados.")
-
-    def open_add_tap_tutor_window(self):
-        """Abre la ventana para añadir un tap como tutor."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Añadir Tap (Tutor)", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del niño:").pack()
-        self.child_id_tap_tutor_entry = tk.Entry(self.root)
-        self.child_id_tap_tutor_entry.pack(pady=5)
-
-        tk.Label(self.root, text="ID del estado:").pack()
-        self.status_id_tap_tutor_entry = tk.Entry(self.root)
-        self.status_id_tap_tutor_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Hora de inicio (YYYY-MM-DDTHH:MM:SS):").pack()
-        self.init_tap_tutor_entry = tk.Entry(self.root)
-        self.init_tap_tutor_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Hora de fin (YYYY-MM-DDTHH:MM:SS):").pack()
-        self.end_tap_tutor_entry = tk.Entry(self.root)
-        self.end_tap_tutor_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Añadir", command=self.add_tap_tutor).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def add_tap_tutor(self):
-        """Maneja el proceso de añadir un tap como tutor."""
-        child_id = self.child_id_tap_tutor_entry.get()
-        status_id = self.status_id_tap_tutor_entry.get()
-        init = self.init_tap_tutor_entry.get()
-        end = self.end_tap_tutor_entry.get()
-
-        response = TapDAO.add_tap_tutor(child_id, status_id, init, end)
-        if response:
-            messagebox.showinfo("Éxito", f"Tap añadido: {response}")
-        else:
-            messagebox.showerror("Error", "No se pudo añadir el tap.")
-
-    def open_add_tap_medico_window(self):
-        """Abre la ventana para añadir un tap como médico."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Añadir Tap (Médico)", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del niño:").pack()
-        self.child_id_tap_medico_entry = tk.Entry(self.root)
-        self.child_id_tap_medico_entry.pack(pady=5)
-
-        tk.Label(self.root, text="ID del estado:").pack()
-        self.status_id_tap_medico_entry = tk.Entry(self.root)
-        self.status_id_tap_medico_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Hora de inicio (YYYY-MM-DDTHH:MM:SS):").pack()
-        self.init_tap_medico_entry = tk.Entry(self.root)
-        self.init_tap_medico_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Hora de fin (YYYY-MM-DDTHH:MM:SS):").pack()
-        self.end_tap_medico_entry = tk.Entry(self.root)
-        self.end_tap_medico_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Añadir", command=self.add_tap_medico).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def add_tap_medico(self):
-        """Maneja el proceso de añadir un tap como médico."""
-        child_id = self.child_id_tap_medico_entry.get()
-        status_id = self.status_id_tap_medico_entry.get()
-        init = self.init_tap_medico_entry.get()
-        end = self.end_tap_medico_entry.get()
-
-        response = TapDAO.add_tap_medico(child_id, status_id, init, end)
-        if response:
-            messagebox.showinfo("Éxito", f"Tap añadido: {response}")
-        else:
-            messagebox.showerror("Error", "No se pudo añadir el tap.")
-
-    def open_add_historial_tutor_window(self):
-        """Abre la ventana para añadir un historial como tutor."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Añadir Historial (Tutor)", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del niño:").pack()
-        self.child_id_historial_tutor_entry = tk.Entry(self.root)
-        self.child_id_historial_tutor_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Fecha (YYYY-MM-DD):").pack()
-        self.data_historial_tutor_entry = tk.Entry(self.root)
-        self.data_historial_tutor_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Hora (HH:MM:SS):").pack()
-        self.hora_historial_tutor_entry = tk.Entry(self.root)
-        self.hora_historial_tutor_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Estado:").pack()
-        self.estat_historial_tutor_entry = tk.Entry(self.root)
-        self.estat_historial_tutor_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Total horas:").pack()
-        self.totalHores_historial_tutor_entry = tk.Entry(self.root)
-        self.totalHores_historial_tutor_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Añadir", command=self.add_historial_tutor).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def add_historial_tutor(self):
-        """Maneja el proceso de añadir un historial como tutor."""
-        child_id = self.child_id_historial_tutor_entry.get()
-        data = self.data_historial_tutor_entry.get()
-        hora = self.hora_historial_tutor_entry.get()
-        estat = self.estat_historial_tutor_entry.get()
-        totalHores = self.totalHores_historial_tutor_entry.get()
-
-        response = HistorialDAO.add_historial_tutor(child_id, data, hora, estat, totalHores)
-        if response:
-            messagebox.showinfo("Éxito", f"Historial añadido: {response}")
-        else:
-            messagebox.showerror("Error", "No se pudo añadir el historial.")
-
-    def open_add_historial_medico_window(self):
-        """Abre la ventana para añadir un historial como médico."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Añadir Historial (Médico)", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del niño:").pack()
-        self.child_id_historial_medico_entry = tk.Entry(self.root)
-        self.child_id_historial_medico_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Fecha (YYYY-MM-DD):").pack()
-        self.data_historial_medico_entry = tk.Entry(self.root)
-        self.data_historial_medico_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Hora (HH:MM:SS):").pack()
-        self.hora_historial_medico_entry = tk.Entry(self.root)
-        self.hora_historial_medico_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Estado:").pack()
-        self.estat_historial_medico_entry = tk.Entry(self.root)
-        self.estat_historial_medico_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Total horas:").pack()
-        self.totalHores_historial_medico_entry = tk.Entry(self.root)
-        self.totalHores_historial_medico_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Añadir", command=self.add_historial_medico).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def add_historial_medico(self):
-        """Maneja el proceso de añadir un historial como médico."""
-        child_id = self.child_id_historial_medico_entry.get()
-        data = self.data_historial_medico_entry.get()
-        hora = self.hora_historial_medico_entry.get()
-        estat = self.estat_historial_medico_entry.get()
-        totalHores = self.totalHores_historial_medico_entry.get()
-
-        response = HistorialDAO.add_historial_medico(child_id, data, hora, estat, totalHores)
-        if response:
-            messagebox.showinfo("Éxito", f"Historial añadido: {response}")
-        else:
-            messagebox.showerror("Error", "No se pudo añadir el historial.")
-
-    def open_edit_comment_window(self):
-        """Abre la ventana para editar un comentario."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Editar Comentario", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del comentario:").pack()
-        self.comment_id_entry = tk.Entry(self.root)
-        self.comment_id_entry.pack(pady=5)
-
-        tk.Label(self.root, text="Nuevo texto:").pack()
-        self.comment_text_entry = tk.Entry(self.root)
-        self.comment_text_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Editar", command=self.edit_comment).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def edit_comment(self):
-        """Maneja el proceso de editar un comentario."""
-        comment_id = self.comment_id_entry.get()
-        text = self.comment_text_entry.get()
-
-        response = CommentDAO.edit_comment(comment_id, text)
-        if response:
-            messagebox.showinfo("Éxito", f"Comentario editado: {response}")
-        else:
-            messagebox.showerror("Error", "No se pudo editar el comentario.")
-
-    def open_delete_comment_window(self):
-        """Abre la ventana para eliminar un comentario."""
-        self.clear_window()
-
-        tk.Label(self.root, text="Eliminar Comentario", font=("Arial", 14)).pack(pady=10)
-
-        tk.Label(self.root, text="ID del comentario:").pack()
-        self.comment_id_delete_entry = tk.Entry(self.root)
-        self.comment_id_delete_entry.pack(pady=5)
-
-        tk.Button(self.root, text="Eliminar", command=self.delete_comment).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.create_main_menu).pack(pady=5)
-
-    def delete_comment(self):
-        """Maneja el proceso de eliminar un comentario."""
-        comment_id = self.comment_id_delete_entry.get()
-        response = CommentDAO.delete_comment(comment_id)
-        if response:
-            messagebox.showinfo("Éxito", response.get("message", "Comentario eliminado correctamente."))
-        else:
-            messagebox.showerror("Error", "No se pudo eliminar el comentario.")
-
-# Ejecución del programa
-if __name__ == "__main__":
+# Función para mostrar la ventana de login
+def show_login_window():
     root = tk.Tk()
-    app = App(root)
+    login_window = LoginWindow(root)
     root.mainloop()
+
+# Función principal
+if __name__ == "__main__":
+    show_login_window()
