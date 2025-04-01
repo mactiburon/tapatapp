@@ -1,0 +1,122 @@
+import 'package:flutter/material.dart';
+
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  void _login() {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Por favor, ingrese su correo y contraseña')),
+      );
+      return;
+    }
+
+    // Aquí puedes agregar la lógica para realizar el login
+    print('Email: $email, Password: $password');
+  }
+
+  void _recoverPassword() {
+    final email = _emailController.text;
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Por favor, ingrese su correo')),
+      );
+      return;
+    }
+
+    // Aquí puedes agregar la lógica para recuperar la contraseña
+    print('Recuperar contraseña para: $email');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Iniciar Sesión'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(labelText: 'Correo'),
+            ),
+            TextField(
+              controller: _passwordController,
+              decoration: InputDecoration(labelText: 'Contraseña'),
+              obscureText: true,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _login,
+              child: Text('Iniciar Sesión'),
+            ),
+            TextButton(
+              onPressed: _recoverPassword,
+              child: Text('Recuperar Contraseña'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+part of 'children_bloc.dart';
+
+abstract class ChildrenEvent extends Equatable {
+  const ChildrenEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+class LoadChildren extends ChildrenEvent {}
+
+class SearchChildren extends ChildrenEvent {
+  final String name;
+
+  const SearchChildren({required this.name});
+
+  @override
+  List<Object> get props => [name];
+}
+
+class AddChild extends ChildrenEvent {
+  final Child child;
+
+  const AddChild({required this.child});
+
+  @override
+  List<Object> get props => [child];
+}
+
+class UpdateChild extends ChildrenEvent {
+  final Child child;
+
+  const UpdateChild({required this.child});
+
+  @override
+  List<Object> get props => [child];
+}
+
+class DeleteChild extends ChildrenEvent {
+  final int childId;
+
+  const DeleteChild({required this.childId});
+
+  @override
+  List<Object> get props => [childId];
+}

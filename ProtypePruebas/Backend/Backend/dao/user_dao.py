@@ -42,24 +42,37 @@ class UserDAO:
             if conn.is_connected():
                 conn.close()
 
-    @staticmethod
-    def get_user_by_credentials(email, password):
-        conn = get_db_connection()
-        if not conn:
-            print("Error: No se pudo establecer conexión con la base de datos")
-            return None
-        
-        try:
-            with conn.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
-                result = cursor.fetchone()
-                return User(**result) if result else None
-        except Error as e:
-            print(f"Database error: {e}")
-            return None
-        finally:
-            if conn.is_connected():
-                conn.close()
+@staticmethod
+def get_user_by_credentials(email, password):
+    conn = get_db_connection()
+    if not conn:
+        print("Error: No se pudo establecer conexión con la base de datos")
+        return None
+    
+    try:
+        with conn.cursor(dictionary=True) as cursor:
+            # Consulta modificada para mayor seguridad
+            cursor.execute("""
+                SELECT id, username, email, role_id, created_at, updated_at 
+                FROM users 
+                WHERE email = %s AND password = %s
+                LIMIT 1
+            """, (email, password))
+            
+            result = cursor.fetchone()
+            if result:
+                print("Usuario encontrado:", result)  # Log para depuración
+                return User(**result)
+            else:
+                print("Usuario no encontrado o credenciales incorrectas")
+                return None
+                
+    except Error as e:
+        print(f"Database error in get_user_by_credentials: {e}")
+        return None
+    finally:
+        if conn.is_connected():
+            conn.close()
 
     @staticmethod
     def create_user(username, password, email, role_id):

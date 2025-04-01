@@ -1,0 +1,62 @@
+[Identificador]
+UC-001
+
+[nombre descriptivo]
+Autenticación de usuario
+
+Descripción
+Permite a los usuarios (administradores, médicos, tutores o cuidadores) iniciar sesión en el sistema proporcionando credenciales válidas para acceder a las funcionalidades según su rol.
+
+Actores
+
+Usuario (cualquier rol)
+
+Sistema
+
+Pre condiciones
+
+El usuario debe estar registrado en la base de datos
+
+El servicio de autenticación debe estar disponible
+
+Post condiciones
+
+El usuario recibe tokens de acceso y refresco
+
+Se registra el inicio de sesión
+
+Secuencia Normal
+
+| Acción (actor) | Reacción (sistema)
+1 | Usuario envía email y contraseña | Sistema valida campos obligatorios
+2 | | Sistema verifica credenciales en BD
+3 | | Si son válidas, genera tokens JWT
+4 | | Devuelve tokens y datos de usuario
+
+Alternativas
+2.1 Si las credenciales son incorrectas → Sistema devuelve error 401
+2.2 Si la conexión a BD falla → Sistema devuelve error 500
+
+Excepciones
+p | Si el formato JSON es inválido → Sistema devuelve error 400
+q | Si el servicio JWT no está disponible → Sistema devuelve error 503
+
+Rendimiento
+El sistema deberá realizar las acciones descritas en los pasos 1 al 4 en un máximo de 2 segundos
+
+Frecuencia
+Este caso de uso se espera que se lleve a cabo una media de 500 veces al día
+
+Importancia
+vital
+
+Urgencia
+inmediatamente
+
+Comentarios
+
+Los tokens tienen caducidad (1h acceso, 24h refresco)
+
+Se implementa seguridad con JWT
+
+Las contraseñas deberían encriptarse en producción
