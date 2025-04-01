@@ -179,3 +179,13 @@ En el caso de un login o registro, el sistema envía las credenciales al servido
 ## Diagrama de Frontend
 
 [Diagrama de clases Cliente](https://github.com/mactiburon/tapatapp/blob/main/Prototype2/ClienteP2.py)
+
+# Prototip 3
+
+## Diagrama de Fluix
+
+[Diagrama de Fluix](https://github.com/mactiburon/tapatapp/blob/main/Prototype2/ClienteP2.py)
+
+## Diagrama de cas d'ús
+
+[Diagrama de cas d'ús](https://github.com/mactiburon/tapatapp/blob/main/Prototype2/ClienteP2.py)
