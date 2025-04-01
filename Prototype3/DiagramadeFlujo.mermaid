@@ -1,27 +1,13 @@
 flowchart TD
-    A[Inicio] --> B[Usuario ingresa email y contraseña]
+    A[Inicio] --> B[Login: email+password]
     B --> C{Validar campos?}
-    C -->|No| D[Error 400: Campos faltantes]
-    C -->|Sí| E[Conectar a BD]
-    E --> F{BD disponible?}
-    F -->|No| G[Error 500: Conexión fallida]
-    F -->|Sí| H[Buscar usuario en BD]
-    H --> I{"Usuario existe y credenciales válidas?"}
-    I -->|No| J[Error 401: Credenciales inválidas]
-    I -->|Sí| K[Generar access_token\n(1h expiración)]
-    K --> L[Generar refresh_token\n(24h expiración)]
-    L --> M[Devolver tokens + datos usuario\n200 OK]
-    M --> N[Fin]
-    D --> N
-    G --> N
-    J --> N
-    
-    subgraph Tokens JWT
-    K -.-> O["Payload: user_id"]
-    K -.-> P["Firma con clave secreta"]
-    L -.-> Q["Uso: /refresh para nuevo token"]
-    end
-    
-    style O fill:#f9f,stroke:#333
-    style P fill:#9f9,stroke:#333
-    style Q fill:#99f,stroke:#333
+    C -->|No| D[Error 400]
+    C -->|Sí| E[Verificar en BD]
+    E --> F{Credenciales válidas?}
+    F -->|No| G[Error 401]
+    F -->|Sí| H[Generar JWT]
+    H --> I[Access Token (1h)]
+    H --> J[Refresh Token (24h)]
+    I --> K[Response 200]
+    J --> K
+    K --> L[Fin]
