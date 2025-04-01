@@ -6,18 +6,22 @@ flowchart TD
     E --> F{BD disponible?}
     F -->|No| G[Error 500: Conexión fallida]
     F -->|Sí| H[Buscar usuario en BD]
-    H --> I{Usuario existe y credenciales válidas?}
+    H --> I{"Usuario existe y credenciales válidas?"}
     I -->|No| J[Error 401: Credenciales inválidas]
-    I -->|Sí| K[Generar access_token (1h expiración)]
-    K --> L[Generar refresh_token (24h expiración)]
-    L --> M[Devolver tokens + datos usuario (200 OK)]
+    I -->|Sí| K[Generar access_token\n(1h expiración)]
+    K --> L[Generar refresh_token\n(24h expiración)]
+    L --> M[Devolver tokens + datos usuario\n200 OK]
     M --> N[Fin]
     D --> N
     G --> N
     J --> N
     
     subgraph Tokens JWT
-    K -->|Contiene| O[Payload: user_id]
-    K -->|Firma con| P[Clave secreta]
-    L -->|Usado para| Q[Obtener nuevo access_token]
+    K -.-> O["Payload: user_id"]
+    K -.-> P["Firma con clave secreta"]
+    L -.-> Q["Uso: /refresh para nuevo token"]
     end
+    
+    style O fill:#f9f,stroke:#333
+    style P fill:#9f9,stroke:#333
+    style Q fill:#99f,stroke:#333
