@@ -1,24 +1,27 @@
 flowchart TD
-    A[Inicio] --> B[Usuario ingresa credenciales]
-    B --> C{Validar campos?}
-    C -->|No| D[Error 400]
-    C -->|Sí| E[Conectar a BD]
-    E --> F{BD disponible?}
-    F -->|No| G[Error 500]
-    F -->|Sí| H[Verificar usuario]
-    H --> I{Credenciales válidas?}
-    I -->|No| J[Error 401]
-    I -->|Sí| K[Generar access_token]
-    K --> L[Generar refresh_token]
-    L --> M[Devolver respuesta 200]
-    M --> N[Fin]
+    %% Sección de autenticación inicial
+    Start([Inicio]) --> Input[/"Usuario ingresa\nemail y contraseña"/]
+    Input --> Validate{"¿Campos\nválidos?"}
     
-    subgraph "Detalles JWT"
-    K -->|Payload| O["user_id"]
-    K -->|Algoritmo| P["HS256"]
-    L -->|Expira| Q["24 horas"]
+    Validate -->|No| Error1([Error 400:\nDatos inválidos]) --> End([Fin])
+    
+    Validate -->|Sí| DB[(Conectar a BD)]
+    DB --> Query["Buscar usuario\npor email"]
+    
+    Query --> Found{"¿Usuario existe y\ncontraseña coincide?"}
+    Found -->|No| Error2([Error 401:\nCredenciales inválidas]) --> End
+    Found -->|Sí| GenerateToken["Generar:\n- Access Token (1h)\n- Refresh Token (24h)"]
+    
+    %% Sección de generación de tokens
+    GenerateToken --> Response[/"Respuesta JSON:\nTokens + datos usuario"/]
+    Response --> End
+    
+    %% Sección de refresco (como subproceso)
+    subgraph Refresh[Renovación de token]
+    RTInput[/"Refresh Token válido"/] --> Verify["Verificar firma\ny expiración"]
+    Verify --> NewToken["Nuevo Access Token"] --> RTResponse[/"Respuesta 200\ncon nuevo token"/]
     end
     
-    style O fill:#f9f
-    style P fill:#9f9
-    style Q fill:#99f
+    %% Conexión entre flujos
+    Response -.->|Incluye\nrefresh_token| RTInput
+    style Refresh fill:#e6f3ff,stroke:#333,stroke-width:2px
