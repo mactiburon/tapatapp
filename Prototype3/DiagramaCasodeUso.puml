@@ -1,0 +1,116 @@
+@startuml Tapatapp_CasosDeUso
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam useCase {
+  BackgroundColor #FFDFD3
+  BorderColor #777777
+}
+
+actor "Usuario" as usuario << (A,#0079C1) >> #FFDFD3
+note right of usuario
+  Roles:
+  - Administrador
+  - Médico
+  - Tutor
+  - Cuidador
+end note
+
+rectangle "Autenticación" {
+  usecase "UC-001: Autenticación" as UC001
+  usecase "UC-002: Recuperar contraseña" as UC002
+  usecase "UC-003: Refrescar token" as UC003
+}
+
+rectangle "Gestión de Usuarios" {
+  usecase "UC-101: Crear usuario" as UC101
+  usecase "UC-102: Listar usuarios" as UC102
+  usecase "UC-103: Obtener usuario" as UC103
+  usecase "UC-104: Actualizar usuario" as UC104
+  usecase "UC-105: Eliminar usuario" as UC105
+  usecase "UC-106: Crear cuidador" as UC106
+}
+
+rectangle "Gestión de Niños" {
+  usecase "UC-201: Crear niño" as UC201
+  usecase "UC-202: Listar niños" as UC202
+  usecase "UC-203: Obtener niño" as UC203
+  usecase "UC-204: Historial de sueño" as UC204
+}
+
+rectangle "Gestión de Taps" {
+  usecase "UC-301: Registrar tap" as UC301
+  usecase "UC-302: Listar taps" as UC302
+  usecase "UC-303: Obtener tap" as UC303
+  usecase "UC-304: Eliminar tap" as UC304
+}
+
+rectangle "Comentarios" {
+  usecase "UC-401: Añadir comentario" as UC401
+  usecase "UC-402: Listar comentarios" as UC402
+  usecase "UC-403: Editar comentario" as UC403
+  usecase "UC-404: Eliminar comentario" as UC404
+}
+
+rectangle "Búsqueda" {
+  usecase "UC-501: Búsqueda avanzada" as UC501
+}
+
+' Relaciones principales
+usuario --> UC001
+usuario --> UC002
+
+' Relaciones de gestión
+usuario --> UC101
+usuario --> UC102
+usuario --> UC103
+usuario --> UC104
+usuario --> UC105
+usuario --> UC106
+
+usuario --> UC201
+usuario --> UC202
+usuario --> UC203
+usuario --> UC204
+
+usuario --> UC301
+usuario --> UC302
+usuario --> UC303
+usuario --> UC304
+
+usuario --> UC401
+usuario --> UC402
+usuario --> UC403
+usuario --> UC404
+
+usuario --> UC501
+
+' Relaciones de inclusión/extensión
+UC001 .> UC003 : <<extend>>
+UC101 .|> UC106 : <<include>>
+
+' Notas técnicas
+note bottom of UC001
+  **Tecnología:**
+  - JWT Tokens
+  - 1h access token
+  - 24h refresh token
+end note
+
+note right of UC101
+  **Validaciones:**
+  - Campos obligatorios
+  - Email válido
+  - Rol existente
+end note
+
+note left of UC301
+  **Datos requeridos:**
+  - child_id
+  - status_id
+  - init/end time
+  - user_id (auto)
+end note
+
+@enduml
